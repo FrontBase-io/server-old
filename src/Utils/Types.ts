@@ -1,3 +1,11 @@
+import { Collection } from "mongodb";
+
+/* Server technical types */
+export interface DBCollectionsType {
+  models: Collection;
+  objects: Collection;
+}
+
 /* Object types */
 export interface ObjectType {
   meta: {

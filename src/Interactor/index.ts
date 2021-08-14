@@ -1,10 +1,12 @@
-import { Collection } from "mongodb";
+import { ChangeStream } from "mongodb";
+import { getObjects } from "../Utils/Functions/Data";
 import {
   checkUserToken,
   comparePasswordToHash,
   getUserToken,
 } from "../Utils/Functions/UserSecurity";
-import { UserObjectType } from "../Utils/Types";
+import { DBCollectionsType, ObjectType, UserObjectType } from "../Utils/Types";
+const uniqid = require("uniqid");
 
 export default class Interactor {
   // Connection with the user
@@ -12,7 +14,7 @@ export default class Interactor {
   // The database
   db;
   // Collections
-  collections: { models: Collection; objects: Collection } = {
+  collections: DBCollectionsType = {
     models: null,
     objects: null,
   };
@@ -27,6 +29,10 @@ export default class Interactor {
   securityLevel = 0;
   // Permissions
   permissions = ["everybody"];
+  // Realtime data listeners
+  objectListeners = {};
+  modelListeners = {};
+  changeStreams: ChangeStream[] = [];
 
   constructor(socket, db) {
     this.socket = socket;
@@ -36,22 +42,59 @@ export default class Interactor {
       objects: db.collection("objects"),
     };
 
+    // Change stream
+    this.changeStreams[0] = this.collections.objects.watch();
+    this.changeStreams[0].on("change", async (change) => {
+      const object = (await this.collections.objects.findOne({
+        ...change.documentKey,
+      })) as ObjectType;
+
+      // Loop through all the listeners for this model
+      // Use a filterCache to save a query if the filter is the same
+      const filterCache = {};
+
+      (this.objectListeners[object.meta.model] || []).map((listener) => {
+        if (filterCache[listener.query]) {
+          // Answer with cache
+          this.socket.emit(
+            `receive ${listener.key}`,
+            filterCache[listener.query]
+          );
+        } else {
+          // Perform query
+          getObjects(this.collections, object.meta.model, listener.filter).then(
+            ({ objects }) => {
+              this.socket.emit(`receive ${listener.key}`, objects);
+
+              // Cache the result
+              filterCache[listener.filter] = objects;
+            }
+          );
+        }
+      });
+    });
+    this.changeStreams[1] = this.collections.models.watch();
+    this.changeStreams[1].on("change", (next) => {
+      console.log("Model change", next);
+    });
+
     /* systemGetObjects */
     this.socket.on("systemGetsObjects", async (modelKey, filter, callback) => {
-      // Get model
-      const model = await this.collections.models.findOne({
-        $or: [{ key: modelKey }, { key_plural: modelKey }],
-      });
+      // Respond directly with the initial results
+      getObjects(this.collections, modelKey, filter).then(
+        ({ objects, model }) => {
+          const key = uniqid();
+          callback({ success: true, key, objects });
 
-      // Get objects
-      await this.collections.objects
-        .find({
-          ...filter,
-          "meta.model": model.key,
-        })
-        .toArray((err, result) => {
-          callback({ success: true, objects: result });
-        });
+          // Also register it as a listener for live data
+          this.objectListeners[model.key] =
+            this.objectListeners[modelKey] || [];
+          this.objectListeners[model.key].push({ filter, key });
+        },
+        (reason) => {
+          callback({ success: false, reason });
+        }
+      );
     });
 
     /* Get token */
@@ -71,7 +114,7 @@ export default class Interactor {
       }
     });
 
-    /* Log in*/
+    /* Token log in*/
     this.socket.on(
       "logIn",
       async (args: { username: string; token: string }, callback) => {
@@ -87,8 +130,11 @@ export default class Interactor {
           callback({ success: true, user });
 
           // Upgrade current session's information
+          console.log(`${user.username} is online!`);
+
           this.user = user;
           this.securityLevel = 1;
+          this.permissions.push("users");
         } else {
           callback({ success: false, reason: "wrong-token" });
         }
