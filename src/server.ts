@@ -94,6 +94,7 @@ http.listen(port, () => {
                 email: user.email,
                 username: user.username,
                 password: hashPassword(user.password),
+                roles: ["6118f070375e274ce6ace551", "6118f070375e274ce6ace552"],
               })
             ).insertedId;
             // Then update the meta to self reference
@@ -124,6 +125,7 @@ http.listen(port, () => {
         // Socket
         io.on("connection", (socket) => {
           const interactor = new Interactor(socket, db);
+          // Todo delete listeners on disconnect
         });
       }
     } catch (e) {
