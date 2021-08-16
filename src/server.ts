@@ -6,13 +6,18 @@ const port = process.env.PORT || 8600;
 import Interactor from "./Interactor";
 import { MongoClient } from "mongodb";
 import { hashPassword } from "./Utils/Functions/UserSecurity";
+require("dotenv").config();
 
 // Start up server
 const app = express();
 app.set("port", port);
 let http = require("http").Server(app);
 
-const whitelist = ["http://localhost:8600", "http://localhost:3000"];
+const whitelist = [
+  "http://localhost:8600",
+  "http://localhost:3000",
+  process.env.PUBLICURL,
+];
 app.use(
   cors({
     credentials: true, // This is important.

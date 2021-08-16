@@ -25,3 +25,22 @@ export const getObjects = (
         resolve({ objects, model });
       });
   });
+
+export const getObject = (
+  collections: DBCollectionsType,
+  modelKey: string,
+  filter: {}
+) =>
+  new Promise(async (resolve, reject) => {
+    // Get model
+    const model = await collections.models.findOne({
+      $or: [{ key: modelKey }, { key_plural: modelKey }],
+    });
+
+    // Get objects
+    const object = await collections.objects.findOne({
+      ...filter,
+      "meta.model": model.key,
+    });
+    resolve({ object, model });
+  });

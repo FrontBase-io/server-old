@@ -1,5 +1,5 @@
 import { ChangeStream } from "mongodb";
-import { getObjects } from "../Utils/Functions/Data";
+import { getObject, getObjects } from "../Utils/Functions/Data";
 import {
   checkUserToken,
   comparePasswordToHash,
@@ -85,6 +85,26 @@ export default class Interactor {
         ({ objects, model }) => {
           const key = uniqid();
           callback({ success: true, key, objects });
+
+          // Also register it as a listener for live data
+          this.objectListeners[model.key] =
+            this.objectListeners[modelKey] || [];
+          this.objectListeners[model.key].push({ filter, key });
+        },
+        (reason) => {
+          callback({ success: false, reason });
+        }
+      );
+    });
+
+    /* systemGetObject */
+    // Convenience function to get just one object instead of an array
+    this.socket.on("systemGetsObject", async (modelKey, filter, callback) => {
+      // Respond directly with the initial results
+      getObject(this.collections, modelKey, filter).then(
+        ({ object, model }) => {
+          const key = uniqid();
+          callback({ success: true, key, object });
 
           // Also register it as a listener for live data
           this.objectListeners[model.key] =
