@@ -6,8 +6,29 @@ export interface DBCollectionsType {
   objects: Collection;
 }
 
+/* Model */
+export interface ModelType {
+  _id: string;
+  key: string;
+  key_plural: string;
+  label: string;
+  label_plural: string;
+  app: string;
+  locked?: Boolean;
+  permissions: {
+    create: string[];
+    read: string[];
+    read_own: string[];
+    update: string[];
+    update_own: string[];
+    delete: string[];
+    delete_own: string[];
+  };
+}
+
 /* Object types */
 export interface ObjectType {
+  _id: string;
   meta: {
     model: string;
     createdOn: Date;

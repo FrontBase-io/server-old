@@ -1,11 +1,16 @@
 import { ChangeStream } from "mongodb";
-import { getObject, getObjects } from "../Utils/Functions/Data";
+import { getModels, getObject, getObjects } from "../Utils/Functions/Data";
 import {
   checkUserToken,
   comparePasswordToHash,
   getUserToken,
 } from "../Utils/Functions/UserSecurity";
-import { DBCollectionsType, ObjectType, UserObjectType } from "../Utils/Types";
+import {
+  DBCollectionsType,
+  ModelType,
+  ObjectType,
+  UserObjectType,
+} from "../Utils/Types";
 const uniqid = require("uniqid");
 
 export default class Interactor {
@@ -31,7 +36,7 @@ export default class Interactor {
   permissions = ["everybody"];
   // Realtime data listeners
   objectListeners = {};
-  modelListeners = {};
+  modelListeners = [];
   changeStreams: ChangeStream[] = [];
 
   constructor(socket, db) {
@@ -62,7 +67,7 @@ export default class Interactor {
           );
         } else {
           // Perform query
-          getObjects(this.collections, object.meta.model, listener.filter).then(
+          getObjects(this, object.meta.model, listener.filter).then(
             ({ objects }) => {
               this.socket.emit(`receive ${listener.key}`, objects);
 
@@ -74,14 +79,46 @@ export default class Interactor {
       });
     });
     this.changeStreams[1] = this.collections.models.watch();
-    this.changeStreams[1].on("change", (next) => {
-      console.log("Model change", next);
+    this.changeStreams[1].on("change", async (change) => {
+      // Loop through all the listeners for this model
+      // Use a filterCache to save a query if the filter is the same
+      const filterCache = {};
+
+      this.modelListeners.map((listener) => {
+        if (filterCache[listener.query]) {
+          // Answer with cache
+          this.socket.emit(
+            `receive ${listener.key}`,
+            filterCache[listener.query]
+          );
+        } else {
+          // Perform query
+          getModels(this, listener.filter).then(({ models }) => {
+            this.socket.emit(`receive ${listener.key}`, models);
+
+            // Cache the result
+            filterCache[listener.filter] = models;
+          });
+        }
+      });
+    });
+
+    /* getModels */
+    this.socket.on("getModels", async (filter, callback) => {
+      // Respond directly with the initial results
+      getModels(this, filter).then(({ models }) => {
+        const key = uniqid();
+        callback({ success: true, key, models });
+
+        // Also register it as a listener for live data
+        this.modelListeners.push({ filter, key });
+      });
     });
 
     /* systemGetObjects */
     this.socket.on("systemGetsObjects", async (modelKey, filter, callback) => {
       // Respond directly with the initial results
-      getObjects(this.collections, modelKey, filter).then(
+      getObjects(this, modelKey, filter).then(
         ({ objects, model }) => {
           const key = uniqid();
           callback({ success: true, key, objects });
@@ -101,7 +138,7 @@ export default class Interactor {
     // Convenience function to get just one object instead of an array
     this.socket.on("systemGetsObject", async (modelKey, filter, callback) => {
       // Respond directly with the initial results
-      getObject(this.collections, modelKey, filter).then(
+      getObject(this, modelKey, filter).then(
         ({ object, model }) => {
           const key = uniqid();
           callback({ success: true, key, object });
