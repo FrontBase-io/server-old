@@ -4,6 +4,7 @@ import { Collection } from "mongodb";
 export interface DBCollectionsType {
   models: Collection;
   objects: Collection;
+  usersettings: Collection;
 }
 
 /* Model */
@@ -43,4 +44,9 @@ export interface ObjectType {
 
 export interface UserObjectType extends ObjectType {
   username: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  password: string;
+  roles: string[];
 }

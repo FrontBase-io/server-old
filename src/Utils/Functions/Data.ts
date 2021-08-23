@@ -5,6 +5,38 @@ export const createObject = () => {
   console.log("Creating object");
 };
 
+/* Update models */
+export const updateModel = (interactor: Interactor, model: ModelType) =>
+  new Promise<void>(async (resolve, reject) => {
+    if (interactor.permissions.includes("administrators")) {
+      delete model._id;
+      const currentModel = await interactor.collections.models.findOne({
+        key: model.key,
+      });
+      const toUpdate = {};
+      //@ts-ignore
+      await Object.keys(model).reduce(async (prev, currKey) => {
+        await currKey;
+
+        if (currentModel[currKey] !== model[currKey]) {
+          toUpdate[currKey] = model[currKey];
+          console.log(`Updating ${currKey}`);
+        }
+
+        return currKey;
+      }, Object.keys(model));
+
+      await interactor.collections.models.updateOne(
+        { key: currentModel.key },
+        { $set: toUpdate }
+      );
+
+      resolve();
+    } else {
+      reject("no-administrator");
+    }
+  });
+
 /* getModels */
 export const getModels = (interactor: Interactor, filter: {}) =>
   new Promise(async (resolve, reject) => {

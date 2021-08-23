@@ -1,16 +1,16 @@
 import { ChangeStream } from "mongodb";
-import { getModels, getObject, getObjects } from "../Utils/Functions/Data";
+import {
+  getModels,
+  getObject,
+  getObjects,
+  updateModel,
+} from "../Utils/Functions/Data";
 import {
   checkUserToken,
   comparePasswordToHash,
   getUserToken,
 } from "../Utils/Functions/UserSecurity";
-import {
-  DBCollectionsType,
-  ModelType,
-  ObjectType,
-  UserObjectType,
-} from "../Utils/Types";
+import { DBCollectionsType, ObjectType, UserObjectType } from "../Utils/Types";
 const uniqid = require("uniqid");
 
 export default class Interactor {
@@ -22,6 +22,7 @@ export default class Interactor {
   collections: DBCollectionsType = {
     models: null,
     objects: null,
+    usersettings: null,
   };
   // Current user information
   user: UserObjectType;
@@ -45,6 +46,7 @@ export default class Interactor {
     this.collections = {
       models: db.collection("models"),
       objects: db.collection("objects"),
+      usersettings: db.collection("usersettings"),
     };
 
     // Change stream
@@ -101,6 +103,23 @@ export default class Interactor {
           });
         }
       });
+    });
+
+    /* Get user settings */
+    this.socket.on("getUserSetting", async (key, callback) => {
+      const setting = await this.collections.usersettings.findOne({
+        user: this.user._id.toString(),
+        key,
+      });
+      callback({ success: true, value: setting.value });
+    });
+
+    /* updateModel */
+    this.socket.on("updateModel", async (model, callback) => {
+      updateModel(this, model).then(
+        () => callback({ success: true }),
+        (reason) => callback({ success: false, reason })
+      );
     });
 
     /* getModels */
@@ -192,6 +211,21 @@ export default class Interactor {
           this.user = user;
           this.securityLevel = 1;
           this.permissions.push("users");
+
+          // Figure out all the user's permissions
+          user.roles.map(async (roleKey) => {
+            const role = await this.collections.objects.findOne({
+              _id: roleKey,
+            });
+            role.permissions.map(async (permissionKey) => {
+              const permission = await this.collections.objects.findOne({
+                _id: permissionKey,
+              });
+              if (!this.permissions.includes(permission.name)) {
+                this.permissions.push(permission.name);
+              }
+            });
+          });
         } else {
           callback({ success: false, reason: "wrong-token" });
         }
