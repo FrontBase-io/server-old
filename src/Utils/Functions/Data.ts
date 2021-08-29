@@ -41,7 +41,10 @@ export const updateModel = (interactor: Interactor, model: ModelType) =>
 export const getModels = (interactor: Interactor, filter: {}) =>
   new Promise(async (resolve, reject) => {
     await interactor.collections.models.find(filter).toArray((err, models) => {
-      resolve({ models });
+      if (err) {
+        resolve({ success: false, reason: err.message });
+      }
+      resolve({ success: true, models });
     });
   });
 
