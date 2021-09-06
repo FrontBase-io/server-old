@@ -1,5 +1,6 @@
 import { ChangeStream } from "mongodb";
 import {
+  getModel,
   getModels,
   getObject,
   getObjects,
@@ -95,11 +96,13 @@ export default class Interactor {
           );
         } else {
           // Perform query
-          getModels(this, listener.filter).then(({ models }) => {
-            this.socket.emit(`receive ${listener.key}`, models);
+          listener.dbAction().then((result) => {
+            console.log("eee", result);
+
+            this.socket.emit(`receive ${listener.key}`, result);
 
             // Cache the result
-            filterCache[listener.filter] = models;
+            filterCache[listener.filter] = result;
           });
         }
       });
@@ -130,7 +133,27 @@ export default class Interactor {
         callback({ success: true, key, models });
 
         // Also register it as a listener for live data
-        this.modelListeners.push({ filter, key });
+        this.modelListeners.push({
+          filter,
+          key,
+          dbAction: async () => getModels(this, filter),
+        });
+      });
+    });
+
+    /* getModel */
+    this.socket.on("getModel", async (modelKey: string, callback) => {
+      // Respond directly with the initial results
+      getModel(this, modelKey).then(({ model }) => {
+        const requestKey = uniqid();
+        callback({ success: true, key: requestKey, model });
+
+        // Also register it as a listener for live data
+        this.modelListeners.push({
+          $or: [{ key: modelKey }, { key_plural: modelKey }],
+          key: requestKey,
+          dbAction: async () => getModel(this, modelKey),
+        });
       });
     });
 

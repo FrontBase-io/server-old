@@ -48,6 +48,15 @@ export const getModels = (interactor: Interactor, filter: {}) =>
     });
   });
 
+/* getModel */
+export const getModel = (interactor: Interactor, modelKey: string) =>
+  new Promise(async (resolve, reject) => {
+    const model = await interactor.collections.models.findOne({
+      $or: [{ key: modelKey }, { key_plural: modelKey }],
+    });
+    resolve({ success: true, model });
+  });
+
 /* getObjects */
 export const getObjects = (
   interactor: Interactor,
