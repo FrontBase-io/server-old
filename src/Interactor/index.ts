@@ -1,4 +1,4 @@
-import { ChangeStream } from "mongodb";
+import { ChangeStream, ObjectId } from "mongodb";
 import {
   getModel,
   getModels,
@@ -97,8 +97,6 @@ export default class Interactor {
         } else {
           // Perform query
           listener.dbAction().then((result) => {
-            console.log("eee", result);
-
             this.socket.emit(`receive ${listener.key}`, result);
 
             // Cache the result
@@ -157,8 +155,8 @@ export default class Interactor {
       });
     });
 
-    /* systemGetObjects */
-    this.socket.on("systemGetsObjects", async (modelKey, filter, callback) => {
+    /* getObjects */
+    this.socket.on("getObjects", async (modelKey, filter, callback) => {
       // Respond directly with the initial results
       getObjects(this, modelKey, filter).then(
         ({ objects, model }) => {
@@ -168,7 +166,11 @@ export default class Interactor {
           // Also register it as a listener for live data
           this.objectListeners[model.key] =
             this.objectListeners[modelKey] || [];
-          this.objectListeners[model.key].push({ filter, key });
+          this.objectListeners[model.key].push({
+            filter,
+            key,
+            dbAction: async () => getObjects(this, modelKey, filter),
+          });
         },
         (reason) => {
           callback({ success: false, reason });
@@ -176,9 +178,9 @@ export default class Interactor {
       );
     });
 
-    /* systemGetObject */
+    /* getObject */
     // Convenience function to get just one object instead of an array
-    this.socket.on("systemGetsObject", async (modelKey, filter, callback) => {
+    this.socket.on("getObject", async (modelKey, filter, callback) => {
       // Respond directly with the initial results
       getObject(this, modelKey, filter).then(
         ({ object, model }) => {
@@ -188,7 +190,11 @@ export default class Interactor {
           // Also register it as a listener for live data
           this.objectListeners[model.key] =
             this.objectListeners[modelKey] || [];
-          this.objectListeners[model.key].push({ filter, key });
+          this.objectListeners[model.key].push({
+            filter,
+            key,
+            dbAction: async () => getObject(this, modelKey, filter),
+          });
         },
         (reason) => {
           callback({ success: false, reason });
@@ -238,11 +244,11 @@ export default class Interactor {
           // Figure out all the user's permissions
           user.roles.map(async (roleKey) => {
             const role = await this.collections.objects.findOne({
-              _id: roleKey,
+              _id: new ObjectId(roleKey),
             });
             role.permissions.map(async (permissionKey) => {
               const permission = await this.collections.objects.findOne({
-                _id: permissionKey,
+                _id: new ObjectId(permissionKey),
               });
               if (!this.permissions.includes(permission.name)) {
                 this.permissions.push(permission.name);

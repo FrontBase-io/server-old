@@ -1,5 +1,6 @@
 import Interactor from "../../Interactor";
 import { ModelType, ObjectType } from "../Types";
+import { ObjectId } from "mongodb";
 
 export const createObject = () => {
   console.log("Creating object");
@@ -82,6 +83,11 @@ export const getObjects = (
     });
 
     if (readPermission || readOwnPermission) {
+      // Make sure ID is understood by Mongo
+      if (filter["_id"]) {
+        filter["_id"] = new ObjectId(filter["_id"]);
+      }
+
       // Get objects
       await interactor.collections.objects
         .find({
