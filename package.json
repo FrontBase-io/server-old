@@ -4,7 +4,7 @@
   "description": "FrontBase.io: Server is is responsible for interacting with the client. It performs security checks and manipulates the data that comes through it.",
   "scripts": {
     "build": "tsc",
-    "dev": "tsc && node dist/server.js"
+    "start": "tsc && node dist/server.js"
   },
   "dependencies": {
     "@types/lodash": "^4.14.172",
