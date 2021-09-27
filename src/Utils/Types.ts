@@ -15,7 +15,12 @@ export interface ModelType {
   label: string;
   label_plural: string;
   app: string;
-  locked?: Boolean;
+  primary: string;
+  icon: string;
+  locked?: boolean;
+  fields: { [key: string]: ModelFieldType };
+  layouts: { [key: string]: ModelLayoutType };
+  lists: { [key: string]: ModelListType };
   permissions: {
     create: string[];
     read: string[];
@@ -25,6 +30,42 @@ export interface ModelType {
     delete: string[];
     delete_own: string[];
   };
+}
+
+// Field
+export interface ModelFieldType {
+  label: string;
+  type?: "text" | "number" | "relationship" | "formula" | "options";
+  required?: boolean;
+  unique?: boolean;
+  // Options
+  selectMultiple?: boolean;
+  optionsDisplayAs?: "dropdown" | "list" | string;
+  options?: { label: string; value: string }[];
+  // Relationship
+  relationshipTo?: string;
+  // Formula
+  formula?: string;
+}
+
+// Layout
+export interface ModelLayoutType {
+  label: string;
+  layout: LayoutItemType[];
+}
+export interface LayoutItemType {
+  key?: string;
+  label: string;
+  type: string;
+  items?: LayoutItemType[];
+  args?: { [key: string]: any };
+}
+
+// List
+export interface ModelListType {
+  label?: string;
+  filter?: {};
+  fields?: string[];
 }
 
 /* Object types */

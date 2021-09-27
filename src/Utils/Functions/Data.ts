@@ -1,10 +1,88 @@
 import Interactor from "../../Interactor";
 import { ModelType, ObjectType } from "../Types";
 import { ObjectId } from "mongodb";
+import { map } from "lodash";
 
 export const createObject = () => {
   console.log("Creating object");
 };
+
+export const updateObject = (
+  interactor: Interactor,
+  _id: string,
+  fieldsToUpdate: { [key: string]: any }
+) =>
+  new Promise(async (resolve, reject) => {
+    // Old object
+    const oldObject = await interactor.collections.objects.findOne({
+      _id: new ObjectId(_id),
+    });
+    // Model
+    const model = (await interactor.collections.models.findOne({
+      key: oldObject.meta.model,
+    })) as ModelType;
+    // Type of update (do we perform an updateOwn or an update?)
+    const typeOfUpdate =
+      JSON.stringify(oldObject.meta.owner) ===
+      JSON.stringify(interactor.user._id)
+        ? "update_own"
+        : "update";
+    const allowedPermissions =
+      model.permissions[typeOfUpdate] || model.permissions.update;
+
+    // Check permissions
+    let hasUpdatePermissions = false;
+    allowedPermissions.map((allowedPermission) => {
+      if (interactor.permissions.includes(allowedPermission)) {
+        hasUpdatePermissions = true;
+      }
+    });
+
+    if (hasUpdatePermissions) {
+      // Permissions are there. Proceed with update.
+      map(fieldsToUpdate, (fieldToUpdate, key) => {
+        // Validate if we received the right data type
+        let dataTypeIsValid = true;
+        switch (model.fields[key].type) {
+          case "text":
+            if (typeof fieldToUpdate !== "string") dataTypeIsValid = false;
+            break;
+          case "options":
+            if (typeof fieldToUpdate !== "string") dataTypeIsValid = false;
+            break;
+          case "number":
+            if (typeof fieldToUpdate !== "number") dataTypeIsValid = false;
+            break;
+          case "relationship":
+            if (typeof fieldToUpdate !== "string") dataTypeIsValid = false;
+            break;
+          case "formula":
+            reject("cannot-update-formula");
+            break;
+          default:
+            reject("unknown-field-type");
+            break;
+        }
+
+        if (dataTypeIsValid) {
+          // Data validation complete.
+          // Todo: transformations
+          // Todo: validations
+          // Update record
+          interactor.collections.objects
+            .updateOne({ _id: new ObjectId(_id) }, { $set: fieldsToUpdate })
+            .then(
+              (result) => resolve(result),
+              (reason) => reject(reason)
+            );
+        } else {
+          reject("data-type-invalid");
+        }
+      });
+    } else {
+      reject("no-update-permissions");
+    }
+  });
 
 /* Update models */
 export const updateModel = (interactor: Interactor, model: ModelType) =>

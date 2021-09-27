@@ -5,6 +5,7 @@ import {
   getObject,
   getObjects,
   updateModel,
+  updateObject,
 } from "../Utils/Functions/Data";
 import {
   checkUserToken,
@@ -59,26 +60,12 @@ export default class Interactor {
 
       // Loop through all the listeners for this model
       // Use a filterCache to save a query if the filter is the same
-      const filterCache = {};
 
       (this.objectListeners[object.meta.model] || []).map((listener) => {
-        if (filterCache[listener.query]) {
-          // Answer with cache
-          this.socket.emit(
-            `receive ${listener.key}`,
-            filterCache[listener.query]
-          );
-        } else {
-          // Perform query
-          getObjects(this, object.meta.model, listener.filter).then(
-            ({ objects }) => {
-              this.socket.emit(`receive ${listener.key}`, objects);
-
-              // Cache the result
-              filterCache[listener.filter] = objects;
-            }
-          );
-        }
+        // Perform query
+        listener.dbAction().then((result) => {
+          this.socket.emit(`receive ${listener.key}`, result);
+        });
       });
     });
     this.changeStreams[1] = this.collections.models.watch();
@@ -154,6 +141,18 @@ export default class Interactor {
         });
       });
     });
+
+    /* Update Object */
+    this.socket.on(
+      "updateObject",
+      async (_id: string, fieldsToUpdate, callback) => {
+        updateObject(this, _id, fieldsToUpdate).then((result) =>
+          callback({ success: true, result }, (reason) =>
+            callback({ success: false, reason })
+          )
+        );
+      }
+    );
 
     /* getObjects */
     this.socket.on("getObjects", async (modelKey, filter, callback) => {
@@ -246,12 +245,12 @@ export default class Interactor {
             const role = await this.collections.objects.findOne({
               _id: new ObjectId(roleKey),
             });
-            role.permissions.map(async (permissionKey) => {
+            role?.permissions.map(async (permissionKey) => {
               const permission = await this.collections.objects.findOne({
                 _id: new ObjectId(permissionKey),
               });
-              if (!this.permissions.includes(permission.name)) {
-                this.permissions.push(permission.name);
+              if (!this.permissions.includes(permission?.name)) {
+                this.permissions.push(permission?.name);
               }
             });
           });
