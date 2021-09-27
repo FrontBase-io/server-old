@@ -146,10 +146,9 @@ export default class Interactor {
     this.socket.on(
       "updateObject",
       async (_id: string, fieldsToUpdate, callback) => {
-        updateObject(this, _id, fieldsToUpdate).then((result) =>
-          callback({ success: true, result }, (reason) =>
-            callback({ success: false, reason })
-          )
+        updateObject(this, _id, fieldsToUpdate).then(
+          (result) => callback({ success: true, result }),
+          (reason) => callback({ success: false, reason })
         );
       }
     );
