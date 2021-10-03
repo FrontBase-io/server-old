@@ -62,6 +62,9 @@ export const updateObject = (
             case "formula":
               reject("cannot-update-formula");
               break;
+            case "date":
+              if (!(fieldToUpdate instanceof Date)) dataTypeIsValid = false;
+              break;
             default:
               reject("unknown-field-type");
               break;
