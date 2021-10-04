@@ -2,6 +2,7 @@ import Interactor from "../../Interactor";
 import { ModelType, ObjectType } from "../Types";
 import { ObjectId } from "mongodb";
 import { map } from "lodash";
+import { parseISO } from "date-fns";
 
 export const createObject = () => {
   console.log("Creating object");
@@ -63,7 +64,7 @@ export const updateObject = (
               reject("cannot-update-formula");
               break;
             case "date":
-              if (!(fieldToUpdate instanceof Date)) dataTypeIsValid = false;
+              fieldToUpdate = parseISO(fieldToUpdate);
               break;
             default:
               reject("unknown-field-type");
