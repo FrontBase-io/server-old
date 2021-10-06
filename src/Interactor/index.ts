@@ -1,5 +1,6 @@
 import { ChangeStream, ObjectId } from "mongodb";
 import {
+  createObject,
   getModel,
   getModels,
   getObject,
@@ -140,6 +141,14 @@ export default class Interactor {
           dbAction: async () => getModel(this, modelKey),
         });
       });
+    });
+
+    /* Create Object */
+    this.socket.on("createObject", async (modelKey, newObject, callback) => {
+      createObject(this, modelKey, newObject).then(
+        (result) => callback({ success: true, result }),
+        (reason) => callback({ success: false, reason })
+      );
     });
 
     /* Update Object */

@@ -4,9 +4,91 @@ import { ObjectId } from "mongodb";
 import { map } from "lodash";
 import { parseISO } from "date-fns";
 
-export const createObject = () => {
-  console.log("Creating object");
-};
+export const createObject = (
+  interactor: Interactor,
+  modelKey: string,
+  newObject: { [key: string]: any }
+) =>
+  new Promise(async (resolve, reject) => {
+    // Old object
+    const objectToInsert = newObject;
+    if (typeof modelKey !== "string") {
+      reject("wrong-modelkey-type");
+    } else {
+      // Model
+      const model = (await interactor.collections.models.findOne({
+        key: modelKey,
+      })) as ModelType;
+
+      // Type of update (do we perform an updateOwn or an update?)
+      if (!interactor.user) {
+        reject("who-r-u");
+      } else {
+        // Check permissions
+        let hasCreatePermissions = false;
+        model.permissions.create.map((allowedPermission) => {
+          if (interactor.permissions.includes(allowedPermission)) {
+            hasCreatePermissions = true;
+          }
+        });
+
+        if (hasCreatePermissions) {
+          // Permissions are there. Proceed with update.
+          map(newObject, (fieldToUpdate, key) => {
+            // Validate if we received the right data type
+            let dataTypeIsValid = true;
+            switch (model.fields[key].type) {
+              case "text":
+                if (typeof fieldToUpdate !== "string") dataTypeIsValid = false;
+                break;
+              case "options":
+                if (typeof fieldToUpdate !== "string") dataTypeIsValid = false;
+                break;
+              case "number":
+                if (typeof fieldToUpdate !== "number") dataTypeIsValid = false;
+                break;
+              case "relationship":
+                if (typeof fieldToUpdate !== "string") dataTypeIsValid = false;
+                break;
+              case "formula":
+                reject("cannot-update-formula");
+                break;
+              case "date":
+                fieldToUpdate = parseISO(fieldToUpdate);
+                break;
+              default:
+                reject("unknown-field-type");
+                break;
+            }
+
+            if (dataTypeIsValid) {
+              // Data validation complete.
+              // Todo: transformations
+              // Todo: validations
+              // Add meta information
+              newObject.meta = {
+                model: modelKey,
+                createdOn: new Date(),
+                lastModifiedOn: new Date(),
+                createdBy: new ObjectId(interactor.user._id),
+                lastModifiedBy: new ObjectId(interactor.user._id),
+                owner: new ObjectId(interactor.user._id),
+              };
+              // Create record
+              interactor.collections.objects.insertOne(newObject).then(
+                (result) => resolve(result),
+                (reason) => reject(reason)
+              );
+            } else {
+              reject("data-type-invalid");
+            }
+          });
+        } else {
+          reject("no-create-permissions");
+        }
+      }
+    }
+  });
 
 export const updateObject = (
   interactor: Interactor,
@@ -242,3 +324,7 @@ export const getObject = (
       reject("no-read-permission");
     }
   });
+
+function fieldTypeIsValid(type: string, fieldToUpdate: any) {
+  throw new Error("Function not implemented.");
+}
