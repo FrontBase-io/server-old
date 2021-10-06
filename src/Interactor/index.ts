@@ -1,6 +1,7 @@
 import { ChangeStream, ObjectId } from "mongodb";
 import {
   createObject,
+  deleteObject,
   getModel,
   getModels,
   getObject,
@@ -156,6 +157,17 @@ export default class Interactor {
       "updateObject",
       async (_id: string, fieldsToUpdate, callback) => {
         updateObject(this, _id, fieldsToUpdate).then(
+          (result) => callback({ success: true, result }),
+          (reason) => callback({ success: false, reason })
+        );
+      }
+    );
+
+    /* Delete Object */
+    this.socket.on(
+      "deleteObject",
+      async (modelKey: string, objectId: string, callback) => {
+        deleteObject(this, modelKey, objectId).then(
           (result) => callback({ success: true, result }),
           (reason) => callback({ success: false, reason })
         );

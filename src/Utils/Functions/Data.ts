@@ -90,6 +90,58 @@ export const createObject = (
     }
   });
 
+export const deleteObject = (
+  interactor: Interactor,
+  modelKey: string,
+  objectId: string
+) =>
+  new Promise(async (resolve, reject) => {
+    // Old object
+    if (typeof modelKey !== "string" || typeof objectId !== "string") {
+      reject("wrong-argument-type");
+    } else {
+      // Model
+      const model = (await interactor.collections.models.findOne({
+        key: modelKey,
+      })) as ModelType;
+      // Object
+      const object = (await interactor.collections.objects.findOne({
+        _id: new ObjectId(objectId),
+      })) as ObjectType;
+
+      // Type of update (do we perform an updateOwn or an update?)
+      if (!interactor.user) {
+        reject("who-r-u");
+      } else {
+        // Check permissions
+        const typeOfPermission =
+          JSON.stringify(object.meta.owner) ===
+          JSON.stringify(interactor.user._id)
+            ? "delete_own"
+            : "delete";
+        const allowedPermissions =
+          model.permissions[typeOfPermission] || model.permissions.delete;
+
+        // Check permissions
+        let hasDeletePermissions = false;
+        allowedPermissions.map((allowedPermission) => {
+          if (interactor.permissions.includes(allowedPermission)) {
+            hasDeletePermissions = true;
+          }
+        });
+
+        if (hasDeletePermissions) {
+          interactor.collections.objects.deleteOne({ _id: object._id }).then(
+            (result) => resolve(result),
+            (reason) => reject(reason)
+          );
+        } else {
+          reject("no-delete-permissions");
+        }
+      }
+    }
+  });
+
 export const updateObject = (
   interactor: Interactor,
   _id: string,
