@@ -1,3 +1,4 @@
+import { map } from "lodash";
 import { ChangeStream, ObjectId } from "mongodb";
 import {
   createObject,
@@ -54,7 +55,9 @@ export default class Interactor {
     };
 
     // Change stream
-    this.changeStreams[0] = this.collections.objects.watch();
+    this.changeStreams[0] = this.collections.objects.watch([], {
+      fullDocument: "updateLookup",
+    });
     this.changeStreams[0].on("change", async (change) => {
       const object = (await this.collections.objects.findOne({
         ...change.documentKey,
@@ -62,13 +65,27 @@ export default class Interactor {
 
       // Loop through all the listeners for this model
       // Use a filterCache to save a query if the filter is the same
-
-      (this.objectListeners[object.meta.model] || []).map((listener) => {
-        // Perform query
-        listener.dbAction().then((result) => {
-          this.socket.emit(`receive ${listener.key}`, result);
+      if (change.operationType === "delete") {
+        // If this is delete we don't have a model anymore, re-fire all triggers.
+        map(
+          this.objectListeners,
+          (modelObjectListener: { [key: string]: any }[]) =>
+            modelObjectListener.map((listener) => {
+              // Perform query
+              listener.dbAction().then((result) => {
+                this.socket.emit(`receive ${listener.key}`, result);
+              });
+            })
+        );
+      } else {
+        // For any other operation we can just trigger the affected objects.
+        (this.objectListeners[object.meta.model] || []).map((listener) => {
+          // Perform query
+          listener.dbAction().then((result) => {
+            this.socket.emit(`receive ${listener.key}`, result);
+          });
         });
-      });
+      }
     });
     this.changeStreams[1] = this.collections.models.watch();
     this.changeStreams[1].on("change", async (change) => {
