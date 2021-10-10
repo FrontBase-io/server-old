@@ -50,6 +50,9 @@ export const createObject = (
               case "relationship":
                 if (typeof fieldToUpdate !== "string") dataTypeIsValid = false;
                 break;
+              case "relationship_m":
+                if (!Array.isArray(fieldToUpdate)) dataTypeIsValid = false;
+                break;
               case "formula":
                 reject("cannot-update-formula");
                 break;
@@ -194,6 +197,9 @@ export const updateObject = (
             case "relationship":
               if (typeof fieldToUpdate !== "string") dataTypeIsValid = false;
               break;
+            case "relationship_m":
+              if (!Array.isArray(fieldToUpdate)) dataTypeIsValid = false;
+              break;
             case "formula":
               reject("cannot-update-formula");
               break;
@@ -304,8 +310,17 @@ export const getObjects = (
 
     if (readPermission || readOwnPermission) {
       // Make sure ID is understood by Mongo
+
       if (filter["_id"]) {
-        filter["_id"] = new ObjectId(filter["_id"]);
+        if (filter["_id"]["$in"]) {
+          const newFilterId = [];
+          filter["_id"]["$in"].map((_id) =>
+            newFilterId.push(new ObjectId(_id))
+          );
+          filter["_id"]["$in"] = newFilterId;
+        } else {
+          filter["_id"] = new ObjectId(filter["_id"]);
+        }
       }
 
       // Get objects
