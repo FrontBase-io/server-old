@@ -43,7 +43,8 @@ export interface ModelFieldType {
     | "relationship_m"
     | "formula"
     | "options"
-    | "date";
+    | "date"
+    | "free-data";
   required?: boolean;
   unique?: boolean;
   // Options
