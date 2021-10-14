@@ -129,8 +129,8 @@ http.listen(port, () => {
 
         // Socket
         io.on("connection", (socket) => {
-          const interactor = new Interactor(socket, db);
-          // Todo delete listeners on disconnect
+          let interactor = new Interactor(socket, db);
+          socket.on("disconnect", () => (interactor = null)); // Cleanup is important because this variable hosts listeners that perform DB queries.
         });
       }
     } catch (e) {

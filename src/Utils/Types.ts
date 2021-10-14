@@ -5,6 +5,7 @@ export interface DBCollectionsType {
   models: Collection;
   objects: Collection;
   usersettings: Collection;
+  systemsettings: Collection;
 }
 
 /* Model */

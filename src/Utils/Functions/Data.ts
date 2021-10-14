@@ -284,6 +284,27 @@ export const getModel = (interactor: Interactor, modelKey: string) =>
     resolve({ success: true, model });
   });
 
+/* createModel */
+export const createModel = (interactor: Interactor, model: ModelType) =>
+  new Promise(async (resolve, reject) => {
+    if (interactor.permissions.includes("administrators")) {
+      const existingModel = await interactor.collections.models.findOne({
+        $or: [{ key: model.key }, { key_plural: model.key_plural }],
+      });
+      if (existingModel) {
+        reject("model-already-exists");
+      } else {
+        //@ts-ignore
+        interactor.collections.models.insertOne(model).then(
+          (newModel) => resolve(newModel),
+          (reason) => reject(reason)
+        );
+      }
+    } else {
+      reject("no-administrator");
+    }
+  });
+
 /* getObjects */
 export const getObjects = (
   interactor: Interactor,

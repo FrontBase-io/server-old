@@ -1,6 +1,7 @@
 import { map } from "lodash";
 import { ChangeStream, ObjectId } from "mongodb";
 import {
+  createModel,
   createObject,
   deleteObject,
   getModel,
@@ -15,7 +16,12 @@ import {
   comparePasswordToHash,
   getUserToken,
 } from "../Utils/Functions/UserSecurity";
-import { DBCollectionsType, ObjectType, UserObjectType } from "../Utils/Types";
+import {
+  DBCollectionsType,
+  ModelType,
+  ObjectType,
+  UserObjectType,
+} from "../Utils/Types";
 const uniqid = require("uniqid");
 
 export default class Interactor {
@@ -28,6 +34,7 @@ export default class Interactor {
     models: null,
     objects: null,
     usersettings: null,
+    systemsettings: null,
   };
   // Current user information
   user: UserObjectType;
@@ -52,6 +59,7 @@ export default class Interactor {
       models: db.collection("models"),
       objects: db.collection("objects"),
       usersettings: db.collection("usersettings"),
+      systemsettings: db.collection("systemsettings"),
     };
 
     // Change stream
@@ -113,12 +121,37 @@ export default class Interactor {
     });
 
     /* Get user settings */
+    this.socket.on("turnObjectIdIntoModelKey", async (_id, callback) => {
+      const object = await this.collections.objects.findOne({
+        _id: new ObjectId(_id),
+      });
+
+      callback({ success: true, modelKey: object.meta.model });
+    });
+
+    /* Get user settings */
     this.socket.on("getUserSetting", async (key, callback) => {
       const setting = await this.collections.usersettings.findOne({
         user: this.user._id.toString(),
         key,
       });
-      callback({ success: true, value: setting.value });
+      if (setting) {
+        callback({ success: true, value: setting.value });
+      } else {
+        callback({ success: false, reason: "no-such-setting" });
+      }
+    });
+
+    /* Get system settings */
+    this.socket.on("getSystemSetting", async (key, callback) => {
+      const setting = await this.collections.systemsettings.findOne({
+        key,
+      });
+      if (setting) {
+        callback({ success: true, value: setting.value });
+      } else {
+        callback({ success: false, reason: "no-such-setting" });
+      }
     });
 
     /* updateModel */
@@ -159,6 +192,15 @@ export default class Interactor {
           dbAction: async () => getModel(this, modelKey),
         });
       });
+    });
+
+    /* createModel */
+    this.socket.on("createModel", async (model: ModelType, callback) => {
+      // Respond directly with the initial results
+      createModel(this, model).then(
+        (model) => callback({ success: true, model }),
+        (reason) => callback({ success: false, reason })
+      );
     });
 
     /* Create Object */
