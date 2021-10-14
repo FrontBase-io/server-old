@@ -205,6 +205,8 @@ export const updateObject = (
             case "formula":
               reject("cannot-update-formula");
               break;
+            case "free-data":
+              break;
             case "date":
               fieldToUpdate = parseISO(fieldToUpdate);
               break;
