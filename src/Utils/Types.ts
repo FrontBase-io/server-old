@@ -100,3 +100,46 @@ export interface UserObjectType extends ObjectType {
   password: string;
   roles: string[];
 }
+
+// Processes
+export interface ProcessObjectType extends ObjectType {
+  name: string;
+  description: string;
+  logic: ProcesLogicStepItemType[];
+  variables?: { [key: string]: ProcessVariableType };
+  triggers?: ProcessTriggersType;
+}
+
+export interface ProcesLogicStepItemType {
+  id: string;
+  type: string;
+  data: { type: string; label: string; args: {} };
+  position: { x: number; y: number };
+}
+
+export interface ProcessVariableType {
+  label: string;
+  type: string;
+  recordModel?: string;
+  isInput?: boolean;
+  isOutput?: boolean;
+}
+export interface ProcessTriggerType {
+  label: string;
+  // Change
+  modelKey?: string;
+  fields?: string[];
+  oldObject?: string;
+  newObject?: string;
+  output?: string;
+  operations?: string[];
+}
+
+export interface ProcessTriggersType {
+  beforeChange?: ProcessTriggerType[];
+  afterChange?: ProcessTriggerType[];
+  time?: ProcessTriggerType[];
+  globalAction?: ProcessTriggerType[];
+  singleAction?: ProcessTriggerType;
+  manyAction?: ProcessTriggerType[];
+}

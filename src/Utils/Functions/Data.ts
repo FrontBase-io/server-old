@@ -1,8 +1,9 @@
 import Interactor from "../../Interactor";
-import { ModelType, ObjectType } from "../Types";
+import { ModelType, ObjectType, ProcessObjectType } from "../Types";
 import { ObjectId } from "mongodb";
-import { map } from "lodash";
+import { findLast, map } from "lodash";
 import { parseISO } from "date-fns";
+import Process from "../../Process/process";
 
 export const createObject = (
   interactor: Interactor,
@@ -34,7 +35,7 @@ export const createObject = (
 
         if (hasCreatePermissions) {
           // Permissions are there. Proceed with update.
-          map(newObject, (fieldToUpdate, key) => {
+          map(newObject, async (fieldToUpdate, key) => {
             // Validate if we received the right data type
             let dataTypeIsValid = true;
             switch (model.fields[key].type) {
@@ -70,6 +71,7 @@ export const createObject = (
               // Data validation complete.
               // Todo: transformations
               // Todo: validations
+
               // Add meta information
               newObject.meta = {
                 model: modelKey,
@@ -79,6 +81,7 @@ export const createObject = (
                 lastModifiedBy: new ObjectId(interactor.user._id),
                 owner: new ObjectId(interactor.user._id),
               };
+
               // Create record
               interactor.collections.objects.insertOne(newObject).then(
                 (result) => resolve(result),
@@ -154,9 +157,9 @@ export const updateObject = (
 ) =>
   new Promise(async (resolve, reject) => {
     // Old object
-    const oldObject = await interactor.collections.objects.findOne({
+    const oldObject = (await interactor.collections.objects.findOne({
       _id: new ObjectId(_id),
-    });
+    })) as ObjectType;
     // Model
     const model = (await interactor.collections.models.findOne({
       key: oldObject.meta.model,
@@ -184,12 +187,11 @@ export const updateObject = (
 
       if (hasUpdatePermissions) {
         // Permissions are there. Proceed with update.
-        map(fieldsToUpdate, (fieldToUpdate, key) => {
+        // Validate if we received the right data type
+        let dataTypeIsValid = true;
+        map(fieldsToUpdate, async (fieldToUpdate, key) => {
           // Prevent updates from being called if the before and after is the same
           if (fieldToUpdate === oldObject[key]) delete fieldToUpdate[key];
-
-          // Validate if we received the right data type
-          let dataTypeIsValid = true;
 
           if (key !== "_id" && key !== "meta") {
             switch (model.fields[key].type) {
@@ -225,22 +227,51 @@ export const updateObject = (
             key === "_id" && delete fieldsToUpdate._id;
             key === "meta" && delete fieldsToUpdate.meta;
           }
-
-          if (dataTypeIsValid) {
-            // Data validation complete.
-            // Todo: transformations
-            // Todo: validations
-            // Update record
-            interactor.collections.objects
-              .updateOne({ _id: new ObjectId(_id) }, { $set: fieldsToUpdate })
-              .then(
-                (result) => resolve(result),
-                (reason) => reject(reason)
-              );
-          } else {
-            reject("data-type-invalid");
-          }
         });
+
+        if (dataTypeIsValid) {
+          // Data validation complete.
+          // Todo: transformations
+          // Todo: validations
+
+          // Process all the processes that have a beforeChange trigger, that affect 'update' and this model.
+          const processes = (await interactor.collections.objects
+            .find({
+              "meta.model": "process",
+              "triggers.beforeChange": {
+                $elemMatch: { modelKey: model.key },
+              },
+            })
+            .toArray()) as ProcessObjectType[];
+          if (processes.length > 0) {
+            //@ts-ignore
+            await processes.reduce(async (prev, processObject) => {
+              await prev;
+
+              const process = new Process(processObject);
+
+              fieldsToUpdate = await process.execute(
+                findLast(
+                  processObject.triggers.beforeChange,
+                  (o) => o.modelKey === model.key
+                ),
+                { newObject: { ...oldObject, ...fieldsToUpdate }, oldObject }
+              );
+
+              return processObject;
+            }, processes[0]);
+          }
+
+          // Update record
+          interactor.collections.objects
+            .updateOne({ _id: new ObjectId(_id) }, { $set: fieldsToUpdate })
+            .then(
+              (result) => resolve(result),
+              (reason) => reject(reason)
+            );
+        } else {
+          reject("data-type-invalid");
+        }
       } else {
         reject("no-update-permissions");
       }
