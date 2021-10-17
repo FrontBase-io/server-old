@@ -161,6 +161,7 @@ export const updateObject = (
     const model = (await interactor.collections.models.findOne({
       key: oldObject.meta.model,
     })) as ModelType;
+
     // Type of update (do we perform an updateOwn or an update?)
     if (!interactor.user) {
       reject("who-r-u");
@@ -184,35 +185,45 @@ export const updateObject = (
       if (hasUpdatePermissions) {
         // Permissions are there. Proceed with update.
         map(fieldsToUpdate, (fieldToUpdate, key) => {
+          // Prevent updates from being called if the before and after is the same
+          if (fieldToUpdate === oldObject[key]) delete fieldToUpdate[key];
+
           // Validate if we received the right data type
           let dataTypeIsValid = true;
-          switch (model.fields[key].type) {
-            case "text":
-              if (typeof fieldToUpdate !== "string") dataTypeIsValid = false;
-              break;
-            case "options":
-              if (typeof fieldToUpdate !== "string") dataTypeIsValid = false;
-              break;
-            case "number":
-              if (typeof fieldToUpdate !== "number") dataTypeIsValid = false;
-              break;
-            case "relationship":
-              if (typeof fieldToUpdate !== "string") dataTypeIsValid = false;
-              break;
-            case "relationship_m":
-              if (!Array.isArray(fieldToUpdate)) dataTypeIsValid = false;
-              break;
-            case "formula":
-              reject("cannot-update-formula");
-              break;
-            case "free-data":
-              break;
-            case "date":
-              fieldToUpdate = parseISO(fieldToUpdate);
-              break;
-            default:
-              reject("unknown-field-type");
-              break;
+
+          if (key !== "_id" && key !== "meta") {
+            switch (model.fields[key].type) {
+              case "text":
+                if (typeof fieldToUpdate !== "string") dataTypeIsValid = false;
+                break;
+              case "options":
+                if (typeof fieldToUpdate !== "string") dataTypeIsValid = false;
+                break;
+              case "number":
+                if (typeof fieldToUpdate !== "number") dataTypeIsValid = false;
+                break;
+              case "relationship":
+                if (typeof fieldToUpdate !== "string") dataTypeIsValid = false;
+                break;
+              case "relationship_m":
+                if (!Array.isArray(fieldToUpdate)) dataTypeIsValid = false;
+                break;
+              case "formula":
+                reject("cannot-update-formula");
+                break;
+              case "free-data":
+                break;
+              case "date":
+                fieldToUpdate = parseISO(fieldToUpdate);
+                break;
+              default:
+                reject("unknown-field-type");
+                break;
+            }
+          } else {
+            // We can't update the ID or the meta
+            key === "_id" && delete fieldsToUpdate._id;
+            key === "meta" && delete fieldsToUpdate.meta;
           }
 
           if (dataTypeIsValid) {
