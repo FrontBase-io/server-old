@@ -186,6 +186,35 @@ export const updateObject = (
       });
 
       if (hasUpdatePermissions) {
+        // Process all the processes that have a beforeChange trigger, that affect 'update' and this model.
+        const processes = (await interactor.collections.objects
+          .find({
+            "meta.model": "process",
+            "triggers.beforeChange": {
+              $elemMatch: { modelKey: model.key },
+            },
+          })
+          .toArray()) as ProcessObjectType[];
+
+        if (processes.length > 0) {
+          //@ts-ignore
+          await processes.reduce(async (prev, processObject) => {
+            await prev;
+
+            const process = new Process(processObject);
+
+            fieldsToUpdate = await process.execute(
+              findLast(
+                processObject.triggers.beforeChange,
+                (o) => o.modelKey === model.key
+              ),
+              { newObject: { ...oldObject, ...fieldsToUpdate }, oldObject }
+            );
+
+            return processObject;
+          }, processes[0]);
+        }
+
         // Permissions are there. Proceed with update.
         // Validate if we received the right data type
         let dataTypeIsValid = true;
@@ -193,7 +222,7 @@ export const updateObject = (
           // Prevent updates from being called if the before and after is the same
           if (fieldToUpdate === oldObject[key]) delete fieldToUpdate[key];
 
-          if (key !== "_id" && key !== "meta") {
+          if (key !== "_id" && key !== "meta" && key) {
             switch (model.fields[key].type) {
               case "text":
                 if (typeof fieldToUpdate !== "string") dataTypeIsValid = false;
@@ -202,7 +231,7 @@ export const updateObject = (
                 if (typeof fieldToUpdate !== "string") dataTypeIsValid = false;
                 break;
               case "number":
-                if (typeof fieldToUpdate !== "number") dataTypeIsValid = false;
+                fieldsToUpdate[key] = parseInt(fieldToUpdate);
                 break;
               case "relationship":
                 if (typeof fieldToUpdate !== "string") dataTypeIsValid = false;
@@ -216,7 +245,7 @@ export const updateObject = (
               case "free-data":
                 break;
               case "date":
-                fieldToUpdate = parseISO(fieldToUpdate);
+                fieldsToUpdate[key] = parseISO(fieldToUpdate);
                 break;
               default:
                 reject("unknown-field-type");
@@ -233,34 +262,6 @@ export const updateObject = (
           // Data validation complete.
           // Todo: transformations
           // Todo: validations
-
-          // Process all the processes that have a beforeChange trigger, that affect 'update' and this model.
-          const processes = (await interactor.collections.objects
-            .find({
-              "meta.model": "process",
-              "triggers.beforeChange": {
-                $elemMatch: { modelKey: model.key },
-              },
-            })
-            .toArray()) as ProcessObjectType[];
-          if (processes.length > 0) {
-            //@ts-ignore
-            await processes.reduce(async (prev, processObject) => {
-              await prev;
-
-              const process = new Process(processObject);
-
-              fieldsToUpdate = await process.execute(
-                findLast(
-                  processObject.triggers.beforeChange,
-                  (o) => o.modelKey === model.key
-                ),
-                { newObject: { ...oldObject, ...fieldsToUpdate }, oldObject }
-              );
-
-              return processObject;
-            }, processes[0]);
-          }
 
           // Update record
           interactor.collections.objects

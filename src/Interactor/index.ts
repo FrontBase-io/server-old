@@ -1,5 +1,6 @@
 import { map } from "lodash";
 import { ChangeStream, ObjectId } from "mongodb";
+import Process from "../Process/process";
 import {
   createModel,
   createObject,
@@ -20,6 +21,7 @@ import {
   DBCollectionsType,
   ModelType,
   ObjectType,
+  ProcessObjectType,
   UserObjectType,
 } from "../Utils/Types";
 const uniqid = require("uniqid");
@@ -279,6 +281,25 @@ export default class Interactor {
         }
       );
     });
+
+    /* Perform actions */
+    this.socket.on(
+      "executeSingleAction",
+      async (actionId: string, object: ObjectType) => {
+        const processObject = (await this.collections.objects.findOne({
+          _id: new ObjectId(actionId),
+          "meta.model": "process",
+        })) as ProcessObjectType;
+        const trigger = processObject.triggers.singleAction[0];
+
+        const process = new Process(processObject);
+
+        const result = await process.execute(trigger, {
+          input: object,
+        });
+        console.log(result);
+      }
+    );
 
     /* Get token */
     this.socket.on("getToken", async (up, callback) => {

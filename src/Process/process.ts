@@ -1,4 +1,5 @@
 import { findLast, map } from "lodash";
+import Formula from "../formulas";
 import {
   ObjectType,
   ProcesLogicStepItemType,
@@ -24,10 +25,10 @@ export default class Process {
     inputArgs: {
       newObject?: ObjectType | ObjectType[];
       oldObject?: ObjectType | ObjectType[];
+      input?: ObjectType | ObjectType[];
     }
   ) =>
     new Promise<any>(async (resolve, reject) => {
-      // Account
       this.trigger = trigger;
       console.log(
         `🤖 Process: ${trigger.label} for ${this.processObject.name} fired!`
@@ -44,19 +45,37 @@ export default class Process {
           this.processObject.variables[trigger.oldObject].type === "objects"
             ? [inputArgs.oldObject]
             : inputArgs.oldObject;
+      if (trigger.input && inputArgs.input)
+        this.vars[trigger.input] =
+          this.processObject.variables[trigger.input].type === "objects"
+            ? [inputArgs.input]
+            : inputArgs.input;
 
       // Find node to execute along the first edge
-      const startEdge = findLast(
+      let currentEdge = findLast(
         this.processObject.logic,
         //@ts-ignore
         (o) => o.source === "input"
       );
-      const startNode = findLast(
+      let currentNode = findLast(
         this.processObject.logic,
         //@ts-ignore
-        (o) => o.id === startEdge.target
+        (o) => o.id === currentEdge.target
       );
-      await this.executeNode(startNode);
+      while (currentNode.type !== "output") {
+        await this.executeNode(currentNode);
+        currentEdge = findLast(
+          this.processObject.logic,
+          //@ts-ignore
+          (o) => o.source === currentNode.id
+        );
+        currentNode = findLast(
+          this.processObject.logic,
+          //@ts-ignore
+          (o) => o.id === currentEdge.target
+        );
+        currentNode;
+      }
 
       if (trigger.output) {
         resolve(this.vars[trigger.output]);
@@ -67,12 +86,34 @@ export default class Process {
 
   // Perform step
   executeNode = (node: ProcesLogicStepItemType) =>
-    new Promise<void>((resolve, reject) => {
+    new Promise<void>(async (resolve, reject) => {
       switch (node.data.type) {
         case "assign_values":
-          map(node.data.args, (value, key) => {
+          //@ts-ignore
+          await Object.keys(node.data.args).reduce(async (prev, key) => {
+            await prev;
+
+            const value = node.data.args[key];
+
+            // Process any potential formulas
+            //@ts-ignore
+            await Object.keys(value).reduce(async (prev, fieldKey) => {
+              await prev;
+
+              const fieldValue = value[fieldKey];
+              if (fieldValue["___form"]) {
+                // Found formula, process it!
+                const formula = new Formula(fieldValue["___form"]);
+                await formula.onParsed;
+                (value as object)[fieldKey] = await formula.parse(this.vars);
+              } else {
+                return fieldKey;
+              }
+            }, Object.keys(value)[0]);
+
             if (this.processObject.variables[key].type === "objects") {
               // Objects, loop through every object to assign the value
+
               this.vars[key].map((obj, objIndex) => {
                 this.vars[key][objIndex] = {
                   ...this.vars[key][objIndex],
@@ -85,7 +126,10 @@ export default class Process {
                 ...(value as object),
               };
             }
-          });
+
+            return key;
+          }, Object.keys(node.data.args)[0]);
+
           resolve();
           break;
         default:
