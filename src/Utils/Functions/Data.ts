@@ -201,15 +201,33 @@ export const updateObject = (
           await processes.reduce(async (prev, processObject) => {
             await prev;
 
-            const process = new Process(processObject);
-
-            fieldsToUpdate = await process.execute(
-              findLast(
-                processObject.triggers.beforeChange,
-                (o) => o.modelKey === model.key
-              ),
-              { newObject: { ...oldObject, ...fieldsToUpdate }, oldObject }
+            const process = new Process(processObject, interactor);
+            const trigger = findLast(
+              processObject.triggers.beforeChange,
+              (o) => o.modelKey === model.key
             );
+            let processHasTriggered = false;
+
+            // This process only fires when certain fields are updated. Check for this criterium.
+            //@ts-ignore
+            await trigger.fields.reduce(async (prev, curr) => {
+              await prev;
+
+              if (
+                Object.keys(fieldsToUpdate).includes(curr) &&
+                fieldsToUpdate[curr] !== oldObject[curr]
+              )
+                processHasTriggered = true;
+
+              return curr;
+            }, trigger.fields[0]);
+
+            if (processHasTriggered) {
+              fieldsToUpdate = await process.execute(trigger, {
+                newObject: { ...oldObject, ...fieldsToUpdate },
+                oldObject,
+              });
+            }
 
             return processObject;
           }, processes[0]);

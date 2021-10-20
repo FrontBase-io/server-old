@@ -292,7 +292,7 @@ export default class Interactor {
         })) as ProcessObjectType;
         const trigger = processObject.triggers.singleAction[0];
 
-        const process = new Process(processObject);
+        const process = new Process(processObject, this);
 
         const result = await process.execute(trigger, {
           input: object,

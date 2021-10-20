@@ -113,7 +113,14 @@ export interface ProcessObjectType extends ObjectType {
 export interface ProcesLogicStepItemType {
   id: string;
   type: string;
-  data: { type: string; label: string; args: {} };
+  data: {
+    type: string;
+    label: string;
+    args: {
+      // Update
+      toUpdate?: string[];
+    };
+  };
   position: { x: number; y: number };
 }
 

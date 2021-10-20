@@ -1,4 +1,5 @@
-import { findLast, map } from "lodash";
+import { cloneDeep, findLast, map } from "lodash";
+import { updateObject } from "../Utils/Functions/Data";
 import Formula from "../formulas";
 import {
   ObjectType,
@@ -6,6 +7,7 @@ import {
   ProcessObjectType,
   ProcessTriggerType,
 } from "../Utils/Types";
+import Interactor from "../Interactor";
 
 export default class Process {
   // The process from the database
@@ -14,9 +16,11 @@ export default class Process {
   trigger: ProcessTriggerType;
   // Variables
   vars = {};
+  interactor: Interactor;
 
-  constructor(po) {
+  constructor(po, interactor: Interactor) {
     this.processObject = po;
+    this.interactor = interactor;
   }
 
   // Execute process
@@ -93,7 +97,7 @@ export default class Process {
           await Object.keys(node.data.args).reduce(async (prev, key) => {
             await prev;
 
-            const value = node.data.args[key];
+            let value = node.data.args[key];
 
             // Process any potential formulas
             //@ts-ignore
@@ -105,7 +109,28 @@ export default class Process {
                 // Found formula, process it!
                 const formula = new Formula(fieldValue["___form"]);
                 await formula.onParsed;
-                (value as object)[fieldKey] = await formula.parse(this.vars);
+
+                if (this.processObject.variables[key].type === "objects") {
+                  // This variable is an array, so process the formula for every item in the array
+                  let pos = 0;
+                  value = [];
+                  await this.vars[key].reduce(async (prev, varInArray) => {
+                    await prev;
+
+                    // Replace objects var's [{obj}] with {obj} so it can be processed as if though it was a single object
+                    const localVars = cloneDeep(this.vars);
+                    localVars[key] = varInArray;
+
+                    // Execute formula for localvar
+                    value[pos] = value[pos] || {};
+                    value[pos][fieldKey] = await formula.parse(localVars);
+
+                    pos++;
+                    return varInArray;
+                  }, this.vars[key][0]);
+                } else {
+                  (value as object)[fieldKey] = await formula.parse(this.vars);
+                }
               } else {
                 return fieldKey;
               }
@@ -114,12 +139,18 @@ export default class Process {
             if (this.processObject.variables[key].type === "objects") {
               // Objects, loop through every object to assign the value
 
-              this.vars[key].map((obj, objIndex) => {
-                this.vars[key][objIndex] = {
-                  ...this.vars[key][objIndex],
-                  ...(value as object),
+              let pos = 0;
+              await this.vars[key].reduce(async (prev, curr) => {
+                await prev;
+
+                this.vars[key][pos] = {
+                  ...this.vars[key][pos],
+                  ...(value[pos] as object),
                 };
-              });
+
+                pos++;
+                return curr;
+              }, this.vars[key][0]);
             } else if (this.processObject.variables[key].type === "object") {
               this.vars[key] = {
                 ...this.vars[key],
@@ -130,6 +161,41 @@ export default class Process {
             return key;
           }, Object.keys(node.data.args)[0]);
 
+          resolve();
+          break;
+        case "update_objects":
+          //@ts-ignore
+          await node.data.args.toUpdate.reduce(async (prev, curr) => {
+            await prev;
+
+            if (this.vars[curr]) {
+              if (this.processObject.variables[curr].type === "objects") {
+                // Update an array of objects
+                await this.vars[curr].reduce(async (prev, objToUpdate) => {
+                  await prev;
+
+                  await updateObject(
+                    this.interactor,
+                    objToUpdate._id,
+                    objToUpdate
+                  );
+
+                  return objToUpdate;
+                }, this.vars[curr][0]);
+              } else {
+                // Update an object
+                await updateObject(
+                  this.interactor,
+                  this.vars[curr]._id,
+                  this.vars[curr]
+                );
+              }
+            } else {
+              reject("var-not-found");
+            }
+
+            return curr;
+          }, node.data.args.toUpdate[0]);
           resolve();
           break;
         default:
