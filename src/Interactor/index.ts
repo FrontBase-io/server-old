@@ -235,6 +235,26 @@ export default class Interactor {
       }
     );
 
+    /* Delete Objects */
+    this.socket.on(
+      "deleteObjects",
+      async (modelKey: string, objectIds: string[], callback) => {
+        const errors: string[] = [];
+        const results = [];
+        objectIds.map((objectId) =>
+          deleteObject(this, modelKey, objectId).then(
+            (result) => results.push(result),
+            (reason) => errors.push(reason)
+          )
+        );
+        if (errors.length < 1) {
+          callback({ success: true, results });
+        } else {
+          callback({ success: false, errors });
+        }
+      }
+    );
+
     /* getObjects */
     this.socket.on("getObjects", async (modelKey, filter, callback) => {
       // Respond directly with the initial results
@@ -296,6 +316,24 @@ export default class Interactor {
 
         const result = await process.execute(trigger, {
           input: object,
+        });
+        console.log(result);
+      }
+    );
+    this.socket.on(
+      "executeManyAction",
+      async (actionId: string, objects: ObjectType[]) => {
+        const processObject = (await this.collections.objects.findOne({
+          _id: new ObjectId(actionId),
+          "meta.model": "process",
+        })) as ProcessObjectType;
+
+        const trigger = processObject.triggers.singleAction[0];
+
+        const process = new Process(processObject, this);
+
+        const result = await process.execute(trigger, {
+          input: objects,
         });
         console.log(result);
       }

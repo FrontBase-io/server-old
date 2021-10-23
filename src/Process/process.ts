@@ -42,17 +42,23 @@ export default class Process {
       if (trigger.newObject && inputArgs.newObject)
         this.vars[trigger.newObject] =
           this.processObject.variables[trigger.newObject].type === "objects"
-            ? [inputArgs.newObject]
+            ? Array.isArray(inputArgs.newObject)
+              ? inputArgs.newObject
+              : [inputArgs.newObject]
             : inputArgs.newObject;
       if (trigger.oldObject && inputArgs.oldObject)
         this.vars[trigger.oldObject] =
           this.processObject.variables[trigger.oldObject].type === "objects"
-            ? [inputArgs.oldObject]
+            ? Array.isArray(inputArgs.oldObject)
+              ? inputArgs.oldObject
+              : [inputArgs.oldObject]
             : inputArgs.oldObject;
       if (trigger.input && inputArgs.input)
         this.vars[trigger.input] =
           this.processObject.variables[trigger.input].type === "objects"
-            ? [inputArgs.input]
+            ? Array.isArray(inputArgs.input)
+              ? inputArgs.input
+              : [inputArgs.input]
             : inputArgs.input;
 
       // Find node to execute along the first edge
@@ -171,6 +177,7 @@ export default class Process {
             if (this.vars[curr]) {
               if (this.processObject.variables[curr].type === "objects") {
                 // Update an array of objects
+
                 await this.vars[curr].reduce(async (prev, objToUpdate) => {
                   await prev;
 
