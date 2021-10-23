@@ -262,6 +262,10 @@ export const updateObject = (
                 break;
               case "free-data":
                 break;
+              case "color":
+                if (!fieldToUpdate.r || !fieldToUpdate.g || !fieldToUpdate.b)
+                  dataTypeIsValid = false;
+                break;
               case "date":
                 fieldsToUpdate[key] = parseISO(fieldToUpdate);
                 break;

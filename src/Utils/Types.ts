@@ -44,7 +44,10 @@ export interface ModelFieldType {
     | "formula"
     | "options"
     | "date"
-    | "free-data";
+    | "free-data"
+    | "color"
+    | "image"
+    | "file";
   required?: boolean;
   unique?: boolean;
   // Options
