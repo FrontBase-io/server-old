@@ -254,6 +254,9 @@ export const updateObject = (
               case "relationship":
                 if (typeof fieldToUpdate !== "string") dataTypeIsValid = false;
                 break;
+              case "image":
+                if (typeof fieldToUpdate !== "string") dataTypeIsValid = false;
+                break;
               case "relationship_m":
                 if (!Array.isArray(fieldToUpdate)) dataTypeIsValid = false;
                 break;

@@ -4,9 +4,13 @@ var cors = require("cors");
 const fs = require("fs");
 const port = process.env.PORT || 8600;
 import Interactor from "./Interactor";
-import { MongoClient } from "mongodb";
-import { hashPassword } from "./Utils/Functions/UserSecurity";
+import { MongoClient, ObjectId } from "mongodb";
+import { checkUserToken, hashPassword } from "./Utils/Functions/UserSecurity";
+import { UserObjectType } from "./Utils/Types";
+import { mkdir } from "fs";
 require("dotenv").config();
+const fileUpload = require("express-fileupload");
+var shell = require("shelljs");
 
 // Start up server
 const app = express();
@@ -36,6 +40,75 @@ let io = require("socket.io")(http, {
       callback(new Error("Not allowed by CORS" + origin));
     },
   },
+});
+app.use(
+  fileUpload({
+    createParentPath: true,
+  })
+);
+
+// Serve uploaded files
+app.use("/files", express.static("/opt/frontbase/files/objects"));
+
+// File upload
+app.post("/upload", async (req, res) => {
+  try {
+    if (!req.files) {
+      res.send({
+        status: false,
+        message: "No file uploaded",
+      });
+    } else {
+      //Use the name of the input field (i.e. "avatar") to retrieve the uploaded file
+      const file = req.files.file;
+      const objectId = req.body.objectId;
+      const username = req.body.username;
+      const token = req.body.token;
+
+      const uri =
+        "mongodb://" + process.env.DBURL + "&appname=Frontbase%20Server";
+      const client: MongoClient = new MongoClient(uri, {
+        //@ts-ignore
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+      await client.connect();
+      const db = client.db("FrontBase");
+      const user = (await db.collection("objects").findOne({
+        "meta.model": "user",
+        username: username,
+      })) as UserObjectType;
+
+      if (checkUserToken(token, user)) {
+        const object = await db
+          .collection("objects")
+          .findOne({ _id: new ObjectId(objectId) });
+        if (object) {
+          const path = `../../files/objects/${object.meta.model}/${object._id}`;
+          shell.mkdir("-p", path);
+
+          file.mv(`${path}/${file.name}`);
+
+          //send response
+          res.send({
+            status: true,
+            message: "File is uploaded",
+            data: {
+              path: `/files/${object.meta.model}/${object._id}/${file.name}`,
+            },
+          });
+        } else {
+          res
+            .status(500)
+            .send({ success: false, reason: "object-doesnt-exist" });
+        }
+      } else {
+        res.status(500).send({ success: false, reason: "wrong-token" });
+      }
+    }
+  } catch (err) {
+    res.status(500).send(err);
+  }
 });
 
 const clientBuildPath = path.join(__dirname, "..", "..", "client", "build");
