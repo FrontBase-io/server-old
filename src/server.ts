@@ -7,7 +7,6 @@ import Interactor from "./Interactor";
 import { MongoClient, ObjectId } from "mongodb";
 import { checkUserToken, hashPassword } from "./Utils/Functions/UserSecurity";
 import { UserObjectType } from "./Utils/Types";
-import { mkdir } from "fs";
 require("dotenv").config();
 const fileUpload = require("express-fileupload");
 var shell = require("shelljs");
@@ -122,6 +121,12 @@ if (fs.existsSync(clientBuildPath)) {
     express.static(path.join(__dirname, "..", "static", "pages", "no-client"))
   );
 }
+app.use(
+  "/static",
+  express.static(
+    require("path").join(__dirname, "..", "..", "client", "build", "static")
+  )
+);
 
 app.use(express.static(path.join(__dirname, "..", "..", "client", "public")));
 app.use("/manifest.json", (req, res, next) => {
