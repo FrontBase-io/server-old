@@ -1,6 +1,6 @@
 import { cloneDeep, findLast, map } from "lodash";
 import { updateObject } from "../Utils/Functions/Data";
-import Formula from "../formulas";
+import Formula from "frontbase-formulas";
 import {
   ObjectType,
   ProcesLogicStepItemType,
