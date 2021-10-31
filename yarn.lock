@@ -475,6 +475,17 @@ frontbase-formulas@^0.0.1:
     lodash "^4.17.20"
     uniqid "^5.2.0"
 
+frontbase-server-utils@^0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/frontbase-server-utils/-/frontbase-server-utils-0.0.1.tgz#41d177a7d25689d535e7399d141b2cebb1c51a64"
+  integrity sha512-DGflDonZdCoeSTGsHeJFS+cBdbKriYUEJ94qoT/MSjsEt4WY1zj14OXu00Vj17s8plOzBpw91z7O3AW0Oa4OzQ==
+  dependencies:
+    date-fns "^2.25.0"
+    frontbase-formulas "^0.0.1"
+    lodash "^4.17.20"
+    mongodb "^4.1.3"
+    uniqid "^5.2.0"
+
 fs.realpath@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/fs.realpath/-/fs.realpath-1.0.0.tgz#1504ad2523158caa40db4a2787cb01411994ea4f"

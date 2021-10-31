@@ -3,9 +3,12 @@ const path = require("path");
 var cors = require("cors");
 const fs = require("fs");
 const port = process.env.PORT || 8600;
-import Interactor from "./Interactor";
+import { Interactor } from "frontbase-server-utils";
 import { MongoClient, ObjectId } from "mongodb";
-import { checkUserToken, hashPassword } from "./Utils/Functions/UserSecurity";
+import {
+  checkUserToken,
+  hashPassword,
+} from "frontbase-server-utils/dist/Interactor/Functions/UserSecurity";
 import { UserObjectType } from "./Utils/Types";
 require("dotenv").config();
 const fileUpload = require("express-fileupload");
