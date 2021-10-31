@@ -49,6 +49,13 @@ app.use(
   })
 );
 
+app.use(
+  "/static",
+  express.static(
+    require("path").join(__dirname, "..", "..", "client", "build", "static")
+  )
+);
+
 // Serve uploaded files
 app.use("/files", express.static("/opt/frontbase/files/objects"));
 
