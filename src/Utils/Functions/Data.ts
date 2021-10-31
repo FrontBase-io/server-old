@@ -62,6 +62,9 @@ export const createObject = (
               case "date":
                 fieldToUpdate = parseISO(fieldToUpdate);
                 break;
+              case "boolean":
+                if (typeof fieldToUpdate !== "boolean") dataTypeIsValid = false;
+                break;
               default:
                 reject("unknown-field-type");
                 break;
@@ -268,6 +271,9 @@ export const updateObject = (
               case "color":
                 if (!fieldToUpdate.r || !fieldToUpdate.g || !fieldToUpdate.b)
                   dataTypeIsValid = false;
+                break;
+              case "boolean":
+                if (typeof fieldToUpdate !== "boolean") dataTypeIsValid = false;
                 break;
               case "date":
                 fieldsToUpdate[key] = parseISO(fieldToUpdate);

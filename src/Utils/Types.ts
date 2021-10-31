@@ -47,7 +47,8 @@ export interface ModelFieldType {
     | "free-data"
     | "color"
     | "image"
-    | "file";
+    | "file"
+    | "boolean";
   required?: boolean;
   unique?: boolean;
   // Options
