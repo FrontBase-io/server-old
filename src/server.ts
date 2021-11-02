@@ -25,23 +25,9 @@ const whitelist = [
   process.env.PUBLICURL,
 ];
 // Register certain critical build files so it doesn't redirect to the app
-app.use(
-  "/static",
-  express.static(
-    require("path").join(__dirname, "..", "..", "client", "build", "static")
-  )
-);
+app.use("/static", express.static(`/opt/frontbase/system/client/build`));
 app.use("/custom-service-worker.js", function (req, res) {
-  res.sendFile(
-    require("path").join(
-      __dirname,
-      "..",
-      "..",
-      "client",
-      "build",
-      "custom-service-worker.js"
-    )
-  );
+  res.sendFile(`/opt/frontbase/system/client/build/custom-service-worker.js`);
 });
 app.use("/:filename.:extension", function (req, res) {
   var filename = req.params.filename;
