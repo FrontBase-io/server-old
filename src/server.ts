@@ -25,14 +25,18 @@ const whitelist = [
   process.env.PUBLICURL,
 ];
 // Register certain critical build files so it doesn't redirect to the app
-app.use("/static", express.static(`/opt/frontbase/system/client/build`));
+const clientBuildPath = "/opt/frontbase/system/client/build";
+app.use("/static", express.static(`${clientBuildPath}/static`));
 app.use("/custom-service-worker.js", function (req, res) {
-  res.sendFile(`/opt/frontbase/system/client/build/custom-service-worker.js`);
+  res.sendFile(`${clientBuildPath}custom-service-worker.js`);
 });
 app.use("/:filename.:extension", function (req, res) {
   var filename = req.params.filename;
   var extension = req.params.extension;
-  res.sendFile(`/opt/frontbase/system/client/build/${filename}.${extension}`);
+  res.sendFile(`${clientBuildPath}/${filename}.${extension}`);
+});
+app.use("/manifest.json", (req, res, next) => {
+  res.sendFile("/opt/frontbase/system/client/public/manifest.json");
 });
 
 app.use(
@@ -58,13 +62,6 @@ app.use(
   fileUpload({
     createParentPath: true,
   })
-);
-
-app.use(
-  "/static",
-  express.static(
-    require("path").join(__dirname, "..", "..", "client", "build", "static")
-  )
 );
 
 // Serve uploaded files
@@ -131,7 +128,6 @@ app.post("/upload", async (req, res) => {
   }
 });
 
-const clientBuildPath = path.join(__dirname, "..", "..", "client", "build");
 // Check if the clientBuildPath exists
 if (fs.existsSync(clientBuildPath)) {
   // Serve react
@@ -142,24 +138,6 @@ if (fs.existsSync(clientBuildPath)) {
     express.static(path.join(__dirname, "..", "static", "pages", "no-client"))
   );
 }
-app.use(
-  "/static",
-  express.static(
-    require("path").join(__dirname, "..", "..", "client", "build", "static")
-  )
-);
-
-app.use(express.static(path.join(__dirname, "..", "..", "client", "public")));
-app.use("/manifest.json", (req, res, next) => {
-  res.sendFile(
-    path.join(__dirname, "..", "..", "client", "public", "manifest.json")
-  );
-});
-app.use((req, res, next) => {
-  res.sendFile(
-    path.join(__dirname, "..", "..", "client", "build", "index.html")
-  );
-});
 
 http.listen(port, () => {
   async function main() {
