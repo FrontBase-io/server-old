@@ -24,11 +24,11 @@ const whitelist = [
   "http://localhost:3000",
   process.env.PUBLICURL,
 ];
-// Register certain files so it doesn't redirect to the app
+// Register certain critical build files so it doesn't redirect to the app
 app.use(
   "/static",
   express.static(
-    require("path").join(__dirname, "..", "..", "Client", "build", "static")
+    require("path").join(__dirname, "..", "..", "client", "build", "static")
   )
 );
 app.use("/custom-service-worker.js", function (req, res) {
@@ -37,7 +37,7 @@ app.use("/custom-service-worker.js", function (req, res) {
       __dirname,
       "..",
       "..",
-      "Client",
+      "client",
       "build",
       "custom-service-worker.js"
     )
