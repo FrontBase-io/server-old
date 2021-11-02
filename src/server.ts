@@ -24,6 +24,31 @@ const whitelist = [
   "http://localhost:3000",
   process.env.PUBLICURL,
 ];
+// Register certain files so it doesn't redirect to the app
+app.use(
+  "/static",
+  express.static(
+    require("path").join(__dirname, "..", "..", "Client", "build", "static")
+  )
+);
+app.use("/custom-service-worker.js", function (req, res) {
+  res.sendFile(
+    require("path").join(
+      __dirname,
+      "..",
+      "..",
+      "Client",
+      "build",
+      "custom-service-worker.js"
+    )
+  );
+});
+app.use("/:filename.:extension", function (req, res) {
+  var filename = req.params.filename;
+  var extension = req.params.extension;
+  res.sendFile(`/opt/frontbase/system/client/build/${filename}.${extension}`);
+});
+
 app.use(
   cors({
     credentials: true, // This is important.
