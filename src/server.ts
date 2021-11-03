@@ -24,34 +24,20 @@ const whitelist = [
   "http://localhost:3000",
   process.env.PUBLICURL,
 ];
-// Register certain critical build files so it doesn't redirect to the app
 const clientBuildPath = "/opt/frontbase/system/client/build";
-app.use("/static", express.static(`${clientBuildPath}/static`));
-app.use("/custom-service-worker.js", function (req, res) {
-  res.sendFile(`${clientBuildPath}custom-service-worker.js`);
-});
-app.use("/:filename.:extension", function (req, res) {
-  var filename = req.params.filename;
-  var extension = req.params.extension;
-  res.sendFile(`${clientBuildPath}/${filename}.${extension}`);
-});
-app.use("/manifest.json", (req, res, next) => {
-  res.sendFile("/opt/frontbase/system/client/public/manifest.json");
-});
 
 app.use(
   cors({
-    credentials: true, // This is important.
+    credentials: true,
     origin: (origin, callback) => {
       if (!origin || whitelist.includes(origin)) return callback(null, true);
       callback(new Error("Not allowed by CORS" + origin));
     },
   })
 );
-var cors = require("cors");
 let io = require("socket.io")(http, {
   cors: {
-    credentials: true, // This is important.
+    credentials: true,
     origin: (origin, callback) => {
       if (!origin || whitelist.includes(origin)) return callback(null, true);
       callback(new Error("Not allowed by CORS" + origin));
@@ -66,6 +52,7 @@ app.use(
 
 // Serve uploaded files
 app.use("/files", express.static("/opt/frontbase/files/objects"));
+app.use("/public", express.static("/opt/frontbase/files/public"));
 
 // File upload
 app.post("/upload", async (req, res) => {
@@ -127,17 +114,14 @@ app.post("/upload", async (req, res) => {
     res.status(500).send(err);
   }
 });
+// Register certain critical build files so it doesn't redirect to the app
+app.use("/static", express.static(`${clientBuildPath}/static`));
+app.use(express.static(clientBuildPath));
+app.use(express.static("public"));
 
-// Check if the clientBuildPath exists
-if (fs.existsSync(clientBuildPath)) {
-  // Serve react
-  app.use(express.static(clientBuildPath));
-} else {
-  // If not, serve a static page
-  app.use(
-    express.static(path.join(__dirname, "..", "static", "pages", "no-client"))
-  );
-}
+app.use((req, res, next) => {
+  res.sendFile(`${clientBuildPath}/index.html`);
+});
 
 http.listen(port, () => {
   async function main() {
