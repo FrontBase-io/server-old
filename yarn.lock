@@ -475,10 +475,10 @@ frontbase-formulas@^0.0.1:
     lodash "^4.17.20"
     uniqid "^5.2.0"
 
-frontbase-server-utils@^0.0.5:
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/frontbase-server-utils/-/frontbase-server-utils-0.0.5.tgz#04bf0ec4f4c1cd1d44388676553aa977c35ccef7"
-  integrity sha512-TBHFCQw8DqK4YYF9fIbInQ3phJwsKUDmxrMmyetvXwxGVjj3U34zaOemFkQF9XJQKLqpZWye2kbOVmRGvYqTsQ==
+frontbase-server-utils@^0.0.6:
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/frontbase-server-utils/-/frontbase-server-utils-0.0.6.tgz#90e77a38a887f7f6ecd3840a59648067234a40a7"
+  integrity sha512-wE3/p6Yt23IrwZzZPboZwJZRJLYcs65MNmQIjoX7D8NWljKf4h/OodFjmI4o6tepvCGFds+rtw/lOWVTvubwNA==
   dependencies:
     bcryptjs "^2.4.3"
     date-fns "^2.25.0"
