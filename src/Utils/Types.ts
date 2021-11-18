@@ -156,3 +156,7 @@ export interface ProcessTriggersType {
   singleAction?: ProcessTriggerType;
   manyAction?: ProcessTriggerType[];
 }
+
+export interface ApiConnectionType {
+  permission: string;
+}

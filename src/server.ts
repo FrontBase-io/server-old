@@ -9,7 +9,9 @@ import {
   checkUserToken,
   hashPassword,
 } from "frontbase-server-utils/dist/Interactor/Functions/UserSecurity";
-import { UserObjectType } from "./Utils/Types";
+import { ApiConnectionType, UserObjectType } from "./Utils/Types";
+import executeReadApi from "./API/Read";
+import { find, findKey } from "lodash";
 require("dotenv").config();
 const fileUpload = require("express-fileupload");
 var shell = require("shelljs");
@@ -54,6 +56,47 @@ app.use(
 app.use("/files", express.static("/opt/frontbase/files/objects"));
 app.use("/public", express.static("/opt/frontbase/files/public"));
 
+// API
+app.use("/api/:modelKey/:action", async (req, res) => {
+  const uri = "mongodb://" + process.env.DBURL + "&appname=Frontbase%20Server";
+  const client: MongoClient = new MongoClient(uri, {
+    //@ts-ignore
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+  await client.connect();
+  const db = client.db("FrontBase");
+
+  if (req.query.apiKey) {
+    // API key action
+    const apiKeys = await db
+      .collection("systemsettings")
+      .findOne({ key: "api-keys" });
+    const apiKey = findKey(apiKeys.value, (o) => o.apiKey === req.query.apiKey);
+    if (apiKey) {
+      switch (req.params.action) {
+        case "read":
+          executeReadApi({ permission: `api-${apiKey}` }, db, req, res);
+          break;
+        default:
+          res.send(`Unknown API method ${req.params.action}`);
+          break;
+      }
+    } else {
+      res.sendStatus(400);
+    }
+  } else {
+    // Public action
+    switch (req.params.action) {
+      case "read":
+        executeReadApi({ permission: "everybody" }, db, req, res);
+        break;
+      default:
+        res.send(`Unknown API method ${req.params.action}`);
+        break;
+    }
+  }
+});
 // File upload
 app.post("/upload", async (req, res) => {
   try {
