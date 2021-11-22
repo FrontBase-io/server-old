@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { ApiConnectionType, ModelType } from "../Utils/Types";
+import { reservedQueryKeys } from "./Utils";
 
 const executeReadApi = async (
   api: ApiConnectionType,
@@ -13,11 +14,19 @@ const executeReadApi = async (
   })) as ModelType;
 
   if (model.permissions.read.includes(api.permission)) {
-    const objects = await db
-      .collection("objects")
-      .find({ "meta.model": model.key })
-      .toArray();
-    res.send(JSON.stringify(objects));
+    // First loop through get parameters to find any other filter parameters
+    const filter = { "meta.model": model.key };
+    //@ts-ignore
+    await Object.keys(req.query).reduce(async (prev, curr) => {
+      await prev;
+
+      if (!reservedQueryKeys.includes(curr)) filter[curr] = req.query[curr];
+
+      return curr;
+    }, Object.keys(req.query)[0]);
+
+    const objects = await db.collection("objects").find(filter).toArray();
+    res.send(JSON.stringify(objects.length === 1 ? objects[0] : objects));
   } else {
     res.sendStatus(405);
   }
