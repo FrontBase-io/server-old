@@ -3,12 +3,12 @@ const path = require("path");
 var cors = require("cors");
 const fs = require("fs");
 const port = process.env.PORT || 8600;
-import { Interactor } from "frontbase-server-utils";
+import { Interactor } from "@frontbase/server-utils";
 import { MongoClient, ObjectId } from "mongodb";
 import {
   checkUserToken,
   hashPassword,
-} from "frontbase-server-utils/dist/Interactor/Functions/UserSecurity";
+} from "@frontbase/server-utils/dist/Interactor/Functions/UserSecurity";
 import { ApiConnectionType, UserObjectType } from "./Utils/Types";
 import executeReadApi from "./API/Read";
 import { find, findKey } from "lodash";

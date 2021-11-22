@@ -14,6 +14,13 @@
   dependencies:
     "@cspotcode/source-map-consumer" "0.8.0"
 
+"@frontbase/publisher-server@^0.0.1":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@frontbase/publisher-server/-/publisher-server-0.0.1.tgz#158c7af9ca2ddd277bf03875b9c82b44a8f8b878"
+  integrity sha512-oG2Exjr3YxeyFLV4IcgEgt+MRTN2unFMVGhQjlndfyrvs25mms8N8lIdZ1z4QMi3KQaPNUFNV9R2ohU8R5KsSA==
+  dependencies:
+    axios "^0.24.0"
+
 "@tsconfig/node10@^1.0.7":
   version "1.0.8"
   resolved "https://registry.yarnpkg.com/@tsconfig/node10/-/node10-1.0.8.tgz#c1e4e80d6f964fbecb3359c43bd48b40f7cadad9"
@@ -170,6 +177,13 @@ array-flatten@1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/array-flatten/-/array-flatten-1.1.1.tgz#9a5f699051b1e7073328f2a008968b64ea2955d2"
   integrity sha1-ml9pkFGx5wczKPKgCJaLZOopVdI=
+
+axios@^0.24.0:
+  version "0.24.0"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-0.24.0.tgz#804e6fa1e4b9c5288501dd9dff56a7a0940d20d6"
+  integrity sha512-Q6cWsys88HoPgAaFAVUb0WpPk0O8iTeisR9IMqy9G8AbO4NlpVknrnQS03zzF9PGAWgO3cgletO3VjV/P7VztA==
+  dependencies:
+    follow-redirects "^1.14.4"
 
 balanced-match@^1.0.0:
   version "1.0.2"
@@ -456,6 +470,11 @@ finalhandler@~1.1.2:
     statuses "~1.5.0"
     unpipe "~1.0.0"
 
+follow-redirects@^1.14.4:
+  version "1.14.5"
+  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.14.5.tgz#f09a5848981d3c772b5392309778523f8d85c381"
+  integrity sha512-wtphSXy7d4/OR+MvIFbCVBDzZ5520qV8XfPklSN5QtxuMUJZ+b0Wnst1e1lCDocfzuCkHqj8k0FpZqO+UIaKNA==
+
 forwarded@0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/forwarded/-/forwarded-0.2.0.tgz#2269936428aad4c15c7ebe9779a84bf0b2a81811"
@@ -465,27 +484,6 @@ fresh@0.5.2:
   version "0.5.2"
   resolved "https://registry.yarnpkg.com/fresh/-/fresh-0.5.2.tgz#3d8cadd90d976569fa835ab1f8e4b23a105605a7"
   integrity sha1-PYyt2Q2XZWn6g1qx+OSyOhBWBac=
-
-frontbase-formulas@^0.0.1:
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/frontbase-formulas/-/frontbase-formulas-0.0.1.tgz#a1ee6288d8b132c09129dae8d00d2bf877e73a37"
-  integrity sha512-7A091jBas11Hg71UYGQEI+2yL93XZ2vL0UdG3WASjUqR/bS7t+mWXV8rkJMjiMm3SKt8ISTiEMt8tcEWpYLElA==
-  dependencies:
-    date-fns "^2.25.0"
-    lodash "^4.17.20"
-    uniqid "^5.2.0"
-
-frontbase-server-utils@^0.0.7:
-  version "0.0.7"
-  resolved "https://registry.yarnpkg.com/frontbase-server-utils/-/frontbase-server-utils-0.0.7.tgz#9aacb68ffb0c2a8fae70ceb6d8cd2d6b3c15e093"
-  integrity sha512-alBnnFtuQTeJuPdZWUQ1GRB1O4JJkglg4aujFdQR0BBcWs988z40GR+j4h84at54qzzWaRzAmDcWH4i+O5tqOg==
-  dependencies:
-    bcryptjs "^2.4.3"
-    date-fns "^2.25.0"
-    frontbase-formulas "^0.0.1"
-    lodash "^4.17.20"
-    mongodb "^4.1.3"
-    uniqid "^5.2.0"
 
 fs.realpath@^1.0.0:
   version "1.0.0"
@@ -585,7 +583,7 @@ is-core-module@^2.2.0:
   dependencies:
     has "^1.0.3"
 
-lodash@^4.17.20, lodash@^4.17.21, lodash@^4.7.0:
+lodash@^4.17.21, lodash@^4.7.0:
   version "4.17.21"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
@@ -942,11 +940,6 @@ typescript@^4.3.5:
   version "4.3.5"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.3.5.tgz#4d1c37cc16e893973c45a06886b7113234f119f4"
   integrity sha512-DqQgihaQ9cUrskJo9kIyW/+g0Vxsk8cDtZ52a3NGh0YNTfpUSArXSohyUGnvbPazEPLu398C0UxmKSOrPumUzA==
-
-uniqid@^5.2.0:
-  version "5.4.0"
-  resolved "https://registry.yarnpkg.com/uniqid/-/uniqid-5.4.0.tgz#4e17bfcab66dfe33563411ae0c801f46ef964e66"
-  integrity sha512-38JRbJ4Fj94VmnC7G/J/5n5SC7Ab46OM5iNtSstB/ko3l1b5g7ALt4qzHFgGciFkyiRNtDXtLNb+VsxtMSE77A==
 
 uniqid@^5.3.0:
   version "5.3.0"
