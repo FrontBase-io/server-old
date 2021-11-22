@@ -3,6 +3,7 @@ const path = require("path");
 var cors = require("cors");
 const fs = require("fs");
 const port = process.env.PORT || 8600;
+//@ts-ignore
 import { Interactor } from "@frontbase/server-utils";
 import { MongoClient, ObjectId } from "mongodb";
 import {

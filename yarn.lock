@@ -21,6 +21,27 @@
   dependencies:
     axios "^0.24.0"
 
+"@frontbase/publisher-server@^0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@frontbase/publisher-server/-/publisher-server-0.0.2.tgz#3b4609e9b560e018918e7c3dae0022d868ba4058"
+  integrity sha512-tA/HZwE0uDR8ZXrbfHof+mQVN5sioHY38NbF1iDj0yMzoskOfBoR7Sn+hCO6/rXWprc/DA6D4sioR5hmDf5B2A==
+  dependencies:
+    axios "^0.24.0"
+    shelljs "^0.8.4"
+
+"@frontbase/server-utils@^0.0.3":
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/@frontbase/server-utils/-/server-utils-0.0.3.tgz#617a995fdd7b1985907afbd4d924063df8f4cf75"
+  integrity sha512-NeSnwfgmuM8C1KO2DQQ8MP9tI50SoXNWJsFpKCMVn2h6y7wsVgEangcxQLdMSpg8jPvztJiMtDTQZGZ/V7jNyw==
+  dependencies:
+    "@frontbase/publisher-server" "^0.0.2"
+    bcryptjs "^2.4.3"
+    date-fns "^2.25.0"
+    frontbase-formulas "^0.0.1"
+    lodash "^4.17.20"
+    mongodb "^4.1.3"
+    uniqid "^5.2.0"
+
 "@tsconfig/node10@^1.0.7":
   version "1.0.8"
   resolved "https://registry.yarnpkg.com/@tsconfig/node10/-/node10-1.0.8.tgz#c1e4e80d6f964fbecb3359c43bd48b40f7cadad9"
@@ -485,6 +506,15 @@ fresh@0.5.2:
   resolved "https://registry.yarnpkg.com/fresh/-/fresh-0.5.2.tgz#3d8cadd90d976569fa835ab1f8e4b23a105605a7"
   integrity sha1-PYyt2Q2XZWn6g1qx+OSyOhBWBac=
 
+frontbase-formulas@^0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/frontbase-formulas/-/frontbase-formulas-0.0.1.tgz#a1ee6288d8b132c09129dae8d00d2bf877e73a37"
+  integrity sha512-7A091jBas11Hg71UYGQEI+2yL93XZ2vL0UdG3WASjUqR/bS7t+mWXV8rkJMjiMm3SKt8ISTiEMt8tcEWpYLElA==
+  dependencies:
+    date-fns "^2.25.0"
+    lodash "^4.17.20"
+    uniqid "^5.2.0"
+
 fs.realpath@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/fs.realpath/-/fs.realpath-1.0.0.tgz#1504ad2523158caa40db4a2787cb01411994ea4f"
@@ -583,7 +613,7 @@ is-core-module@^2.2.0:
   dependencies:
     has "^1.0.3"
 
-lodash@^4.17.21, lodash@^4.7.0:
+lodash@^4.17.20, lodash@^4.17.21, lodash@^4.7.0:
   version "4.17.21"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
@@ -940,6 +970,11 @@ typescript@^4.3.5:
   version "4.3.5"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.3.5.tgz#4d1c37cc16e893973c45a06886b7113234f119f4"
   integrity sha512-DqQgihaQ9cUrskJo9kIyW/+g0Vxsk8cDtZ52a3NGh0YNTfpUSArXSohyUGnvbPazEPLu398C0UxmKSOrPumUzA==
+
+uniqid@^5.2.0:
+  version "5.4.0"
+  resolved "https://registry.yarnpkg.com/uniqid/-/uniqid-5.4.0.tgz#4e17bfcab66dfe33563411ae0c801f46ef964e66"
+  integrity sha512-38JRbJ4Fj94VmnC7G/J/5n5SC7Ab46OM5iNtSstB/ko3l1b5g7ALt4qzHFgGciFkyiRNtDXtLNb+VsxtMSE77A==
 
 uniqid@^5.3.0:
   version "5.3.0"
