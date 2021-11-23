@@ -14,27 +14,20 @@
   dependencies:
     "@cspotcode/source-map-consumer" "0.8.0"
 
-"@frontbase/publisher-server@^0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@frontbase/publisher-server/-/publisher-server-0.0.1.tgz#158c7af9ca2ddd277bf03875b9c82b44a8f8b878"
-  integrity sha512-oG2Exjr3YxeyFLV4IcgEgt+MRTN2unFMVGhQjlndfyrvs25mms8N8lIdZ1z4QMi3KQaPNUFNV9R2ohU8R5KsSA==
-  dependencies:
-    axios "^0.24.0"
-
-"@frontbase/publisher-server@^0.0.2":
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/@frontbase/publisher-server/-/publisher-server-0.0.2.tgz#3b4609e9b560e018918e7c3dae0022d868ba4058"
-  integrity sha512-tA/HZwE0uDR8ZXrbfHof+mQVN5sioHY38NbF1iDj0yMzoskOfBoR7Sn+hCO6/rXWprc/DA6D4sioR5hmDf5B2A==
+"@frontbase/publisher-server@^0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@frontbase/publisher-server/-/publisher-server-0.0.4.tgz#d600212edc160af075ed8368ca85754535963550"
+  integrity sha512-pz5wXYAb5q+W6OzR0Q7RHzj7iTCTZ15t8rPiQY3UKaUGNNiyD31I75NjZzmyABgEfWEfHTyZvQ0epcM9Hrsyxg==
   dependencies:
     axios "^0.24.0"
     shelljs "^0.8.4"
 
-"@frontbase/server-utils@^0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@frontbase/server-utils/-/server-utils-0.0.3.tgz#617a995fdd7b1985907afbd4d924063df8f4cf75"
-  integrity sha512-NeSnwfgmuM8C1KO2DQQ8MP9tI50SoXNWJsFpKCMVn2h6y7wsVgEangcxQLdMSpg8jPvztJiMtDTQZGZ/V7jNyw==
+"@frontbase/server-utils@^0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@frontbase/server-utils/-/server-utils-0.0.5.tgz#8d1adcd0a799d1430ba03e12ae1274253b752601"
+  integrity sha512-lOrr1zyy5yBMxxRnScNtptLOjq7GGpVqhkqW6RspHEmttAQNilq1BJBP0WaJneL/WHM+fhr+GFVgEZYIrUVKnw==
   dependencies:
-    "@frontbase/publisher-server" "^0.0.2"
+    "@frontbase/publisher-server" "^0.0.4"
     bcryptjs "^2.4.3"
     date-fns "^2.25.0"
     frontbase-formulas "^0.0.1"
