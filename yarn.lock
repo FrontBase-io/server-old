@@ -14,20 +14,20 @@
   dependencies:
     "@cspotcode/source-map-consumer" "0.8.0"
 
-"@frontbase/publisher-server@^0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@frontbase/publisher-server/-/publisher-server-0.0.4.tgz#d600212edc160af075ed8368ca85754535963550"
-  integrity sha512-pz5wXYAb5q+W6OzR0Q7RHzj7iTCTZ15t8rPiQY3UKaUGNNiyD31I75NjZzmyABgEfWEfHTyZvQ0epcM9Hrsyxg==
+"@frontbase/publisher-server@^0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@frontbase/publisher-server/-/publisher-server-0.0.5.tgz#ecd7ae4a34ccfae945df8872a425fea1e0b327e1"
+  integrity sha512-r+yEep9yucg9lcHZ8YP2HMAKSAiwOjISTkkGfudT3c3P+jpPmdKIolq0QpLmmaEZ18FvsdPbgTNnIRuZ8ISYuQ==
   dependencies:
     axios "^0.24.0"
     shelljs "^0.8.4"
 
-"@frontbase/server-utils@^0.0.5":
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/@frontbase/server-utils/-/server-utils-0.0.5.tgz#8d1adcd0a799d1430ba03e12ae1274253b752601"
-  integrity sha512-lOrr1zyy5yBMxxRnScNtptLOjq7GGpVqhkqW6RspHEmttAQNilq1BJBP0WaJneL/WHM+fhr+GFVgEZYIrUVKnw==
+"@frontbase/server-utils@^0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@frontbase/server-utils/-/server-utils-0.0.6.tgz#a3bd5c16f5476ec0a0e287d61d556effebaa298a"
+  integrity sha512-XzZT0RQzWTMt3Z6NlnTLjjGmmMFwi0pR6GvfGz4OdlN1u2U1LsbDoPqhG+gQ0wOou67e08shWU9eP1VOpUxfUQ==
   dependencies:
-    "@frontbase/publisher-server" "^0.0.4"
+    "@frontbase/publisher-server" "^0.0.5"
     bcryptjs "^2.4.3"
     date-fns "^2.25.0"
     frontbase-formulas "^0.0.1"
