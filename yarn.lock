@@ -22,10 +22,10 @@
     axios "^0.24.0"
     shelljs "^0.8.4"
 
-"@frontbase/server-utils@^0.0.8":
-  version "0.0.8"
-  resolved "https://registry.yarnpkg.com/@frontbase/server-utils/-/server-utils-0.0.8.tgz#4ade7179475695049cd0207f14683b70b796abac"
-  integrity sha512-wcmb1uwuB9Oi7Ycv6lEygkBmfv3emcSHfO3C5OUUnAe0uti9/9CSxj7YUZUKDi/UaE8o4e6MBDalPwZkp24ebA==
+"@frontbase/server-utils@^0.0.9":
+  version "0.0.9"
+  resolved "https://registry.yarnpkg.com/@frontbase/server-utils/-/server-utils-0.0.9.tgz#e2b9f6948349a6742760f0a429a30df355cab3db"
+  integrity sha512-MuCOPA9ZYon5DZ3M2K9v5ARLaqoij+jaW5u73SiA0eAv4+O6D49iFk1BNY2d7d8vWmj0Voq4yAKi/4j/D687OA==
   dependencies:
     "@frontbase/publisher-server" "^0.0.5"
     bcryptjs "^2.4.3"
