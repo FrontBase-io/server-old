@@ -201,17 +201,36 @@ http.listen(port, () => {
               await db.collection("objects").insertOne({
                 first_name: user.first_name,
                 last_name: user.last_name,
+                full_name: `${user.first_name} ${user.last_name}`,
                 email: user.email,
                 username: user.username,
                 password: hashPassword(user.password),
-                roles: ["6118f070375e274ce6ace551", "6118f070375e274ce6ace552"],
+                roles: ["6118f070375e274ce6ace551", "6162ca5e355225349fb5090c"],
+              })
+            ).insertedId;
+            // Then create a matching user
+            const newPersonId = await (
+              await db.collection("objects").insertOne({
+                first_name: user.first_name,
+                last_name: user.last_name,
+                full_name: `${user.first_name} ${user.last_name}`,
+                email: user.email,
+                meta: {
+                  createdOn: now,
+                  lastModifiedOn: now,
+                  model: "person",
+                  createdBy: newUser,
+                  lastModifiedBy: newUser,
+                  owner: newUser,
+                },
               })
             ).insertedId;
             // Then update the meta to self reference
-            db.collection("objects").updateOne(
+            await db.collection("objects").updateOne(
               { _id: newUser },
               {
                 $set: {
+                  person: newPersonId,
                   meta: {
                     createdOn: now,
                     lastModifiedOn: now,
@@ -223,10 +242,15 @@ http.listen(port, () => {
                 },
               }
             );
+            // Insert system settings
+            await db
+              .collection("systemsettings")
+              .insertOne({ key: "installed-apps", value: ["system"] });
 
             callback({
               result: "success",
             });
+            main(); // Restart
           });
         });
       } else {
