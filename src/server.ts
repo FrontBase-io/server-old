@@ -29,21 +29,20 @@ const whitelist = [
 ];
 const clientBuildPath = "/opt/frontbase/system/client/build";
 
-app.use(
-  cors({
-    credentials: true,
-    origin: (origin, callback) => {
-      if (!origin || whitelist.includes(origin)) return callback(null, true);
-      callback(new Error("Not allowed by CORS" + origin));
-    },
-  })
-);
+const CORS = cors({
+  credentials: true,
+  origin: (origin, callback) => {
+    if (!origin || whitelist.includes(origin)) return callback(null, true);
+    callback(new Error("HTTP blocked by CORS: " + origin));
+  },
+});
+
 let io = require("socket.io")(http, {
   cors: {
     credentials: true,
     origin: (origin, callback) => {
       if (!origin || whitelist.includes(origin)) return callback(null, true);
-      callback(new Error("Not allowed by CORS" + origin));
+      callback(new Error("Socket blocked by CORS: " + origin));
     },
   },
 });
@@ -58,46 +57,54 @@ app.use("/files", express.static("/opt/frontbase/files/objects"));
 app.use("/public", express.static("/opt/frontbase/files/public"));
 
 // API
-app.use("/api/:modelKey/:action", async (req, res) => {
-  const uri = "mongodb://" + process.env.DBURL + "&appname=Frontbase%20Server";
-  const client: MongoClient = new MongoClient(uri, {
-    //@ts-ignore
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
-  await client.connect();
-  const db = client.db("FrontBase");
+app.use(
+  "/api/:modelKey/:action",
+  cors({ origin: "*", methods: "GET,HEAD,PUT,PATCH,POST,DELETE" }),
+  async (req, res) => {
+    const uri =
+      "mongodb://" + process.env.DBURL + "&appname=Frontbase%20Server";
+    const client: MongoClient = new MongoClient(uri, {
+      //@ts-ignore
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    await client.connect();
+    const db = client.db("FrontBase");
 
-  if (req.query.apiKey) {
-    // API key action
-    const apiKeys = await db
-      .collection("systemsettings")
-      .findOne({ key: "api-keys" });
-    const apiKey = findKey(apiKeys.value, (o) => o.apiKey === req.query.apiKey);
-    if (apiKey) {
+    if (req.query.apiKey) {
+      // API key action
+      const apiKeys = await db
+        .collection("systemsettings")
+        .findOne({ key: "api-keys" });
+      const apiKey = findKey(
+        apiKeys.value,
+        (o) => o.apiKey === req.query.apiKey
+      );
+      if (apiKey) {
+        switch (req.params.action) {
+          case "read":
+            executeReadApi({ permission: `api-${apiKey}` }, db, req, res);
+            break;
+          default:
+            res.send(`Unknown API method ${req.params.action}`);
+            break;
+        }
+      } else {
+        res.sendStatus(400);
+      }
+    } else {
+      // Public action
       switch (req.params.action) {
         case "read":
-          executeReadApi({ permission: `api-${apiKey}` }, db, req, res);
+          executeReadApi({ permission: "everybody" }, db, req, res);
           break;
         default:
           res.send(`Unknown API method ${req.params.action}`);
           break;
       }
-    } else {
-      res.sendStatus(400);
-    }
-  } else {
-    // Public action
-    switch (req.params.action) {
-      case "read":
-        executeReadApi({ permission: "everybody" }, db, req, res);
-        break;
-      default:
-        res.send(`Unknown API method ${req.params.action}`);
-        break;
     }
   }
-});
+);
 // File upload
 app.post("/upload", async (req, res) => {
   try {
@@ -159,7 +166,7 @@ app.post("/upload", async (req, res) => {
   }
 });
 // Register certain critical build files so it doesn't redirect to the app
-app.use("/static", express.static(`${clientBuildPath}/static`));
+app.use("/static", CORS, express.static(`${clientBuildPath}/static`));
 app.use(express.static(clientBuildPath));
 app.use(express.static("public"));
 
