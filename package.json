@@ -30,6 +30,6 @@
     "@types/lodash": "^4.14.172",
     "@types/mongodb": "^4.0.7",
     "@types/node": "^16.4.13",
-    "ts-node": "^10.2.0"
+    "ts-node": "^10.8.0"
   }
 }
